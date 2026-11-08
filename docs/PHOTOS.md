@@ -14,7 +14,7 @@ Give a photo **5 stars** to feature it on the home page. If several have 5 stars
 In the **export** module:
 
 - Format: **JPEG**, quality **92**
-- Size: **4000 × 4000** max. That's plenty for the site (it shows at most 1600px) and keeps each file well under Cloudflare's 20 MB limit for image processing. Don't upload RAW files.
+- Size: **4000 × 4000** max. **This matters:** Cloudflare can't process originals over 20 MB, and a full-resolution export from your camera is well over that (a 9568 × 6376 tulip came out at 50 MB). The site shows nothing for oversized files. That's plenty for the site (it shows at most 1600px) and keeps each file well under Cloudflare's 20 MB limit for image processing. Don't upload RAW files.
 - Click the gear (preferences) next to the export button → **metadata**:
   - On: *exif data*, *metadata* (this carries title, description, rating)
   - Off: *geo tags*, *develop history*, *tags*

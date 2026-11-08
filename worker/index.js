@@ -65,7 +65,9 @@ export function isSafeKey(key) {
 
 async function cached(request, ctx, ttl, make) {
   const cache = caches.default;
-  const key = new Request(new URL(request.url).toString(), { method: "GET" });
+  // Ignore query strings so "?anything" can't bypass the cache and burn transformations.
+  const u = new URL(request.url);
+  const key = new Request(u.origin + u.pathname, { method: "GET" });
   const hit = await cache.match(key);
   if (hit) return hit;
 
