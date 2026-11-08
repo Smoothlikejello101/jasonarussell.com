@@ -53,13 +53,13 @@ else
     while true; do
       if [ "$3" = hidden ]; then read -rsp "  $1: " v; echo; else read -rp "  $1: " v; fi
       v="$(printf '%s' "$v" | tr -d '[:space:]')"
-      if [ "${#v}" -eq "$2" ]; then REPLY_VAL="$v"; return; fi
+      if [ "${#v}" -eq "$2" ]; then [ "$3" = hidden ] && echo "    Got it (${#v} characters)."; REPLY_VAL="$v"; return; fi
       echo "    That was ${#v} characters; expected $2. Try again."
     done
   }
   ask "Account ID (32 characters, the part before .r2.cloudflarestorage.com)" 32 shown; ACCOUNT_ID="$REPLY_VAL"
   ask "Access Key ID (32 characters)" 32 shown; ACCESS_KEY="$REPLY_VAL"
-  ask "Secret Access Key (64 characters, hidden)" 64 hidden; SECRET_KEY="$REPLY_VAL"
+  ask "Secret Access Key (64 characters; nothing shows as you paste, then press Enter)" 64 hidden; SECRET_KEY="$REPLY_VAL"
   # Older rclone (before 1.58) has no 'Cloudflare' provider; 'Other' works the same for R2.
   PROVIDER=Cloudflare
   RV=$(rclone version | head -1 | sed -E 's/.*v([0-9]+)\.([0-9]+).*/\1 \2/')
