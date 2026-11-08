@@ -15,7 +15,7 @@ import { parseJpegHead } from "./jpeg.js";
 // transformation per photo (Cloudflare Images free tier: 5,000 unique/month).
 export const VARIANTS = {
   thumb: { long: 720, quality: 80, mark: 96, inset: 12 },
-  full: { long: 1600, quality: 84, mark: 200, inset: 24 },
+  full: { long: 1600, quality: 84, mark: 220, inset: 24 },
 };
 
 const IMAGE_EXT = /\.(jpe?g)$/i;

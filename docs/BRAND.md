@@ -12,7 +12,7 @@ Jason's original Gabriola-based monogram, traced to vector and refined (November
 | `public/brand/jr-mark-black.svg` / `jr-mark-white.svg` | One-color uses (stamps, embossing). In one color the mark reads more like an R, so prefer two-tone. |
 | `public/favicon.svg` | Browser tab; switches the J to light in dark mode |
 | `public/apple-touch-icon.png` | Phone home-screen icon |
-| `public/watermark.png` | Photo watermark: white J, gold R, "jasonarussell.com", soft shadow |
+| `public/watermark.png` | Photo watermark: white J, gold R over "Jason A Russell.com" (EB Garamond Italic, half spaces around the A), soft shadow |
 
 ## Colors
 - Black `#141414`, goldenrod `#E2AE0E` (the mark)
