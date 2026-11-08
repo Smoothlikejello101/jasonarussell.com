@@ -1,10 +1,11 @@
 ---
 import fs from "node:fs";
+import path from "node:path";
 import Base from "../layouts/Base.astro";
 import site from "../data/site.json";
 import resume from "../data/resume.json";
 
-const hasPdf = fs.existsSync(new URL("../../public/resume.pdf", import.meta.url));
+const hasPdf = fs.existsSync(path.join(process.cwd(), "public", "resume.pdf"));
 const dates = (j: { start?: string; end?: string }) => [j.start, j.end].filter(Boolean).join(" – ");
 ---
 <Base title="Resume" current="resume" description={`${site.name}: ${resume.headline}.`}>
@@ -40,6 +41,9 @@ const dates = (j: { start?: string; end?: string }) => [j.start, j.end].filter(B
           <ul>{job.bullets.map((b) => <li>{b}</li>)}</ul>
         </article>
       ))}
+      {resume.earlier?.length > 0 && (
+        <p class="earlier"><span class="sans">Earlier:</span> {resume.earlier.join(" · ")}</p>
+      )}
     </section>
 
     <div class="resume-side">
@@ -107,6 +111,8 @@ const dates = (j: { start?: string; end?: string }) => [j.start, j.end].filter(B
   .job h3 { font-size: 1.3rem; font-weight: 500; }
   .job .org { font-weight: 400; }
   .job-meta { font-size: 0.9rem; color: var(--muted); margin: 0.3rem 0 0.9rem; }
+  .earlier { color: var(--muted); max-width: var(--measure); }
+  .earlier .sans { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
 
   .skill-group h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
   .skill-group p { font-size: 1.05rem; color: var(--muted); }

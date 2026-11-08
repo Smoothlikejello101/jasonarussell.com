@@ -1,22 +1,32 @@
 # Updating the resume
 
-The resume page at `/resume/` is generated from **`src/data/resume.json`**. The downloadable PDF is **`public/resume.pdf`**. Both are deployed automatically when changes are pushed to `main`.
+One file drives everything: **`src/data/resume.json`**.
 
-## For the Claude in the Job Hunt project
+- The page at `/resume/` is built from it on every deploy.
+- The downloadable PDF, **`public/resume.pdf`**, is built from it by `npm run resume:pdf` (`tools/resume/build.mjs`, which uses `docx` + LibreOffice). The PDF is committed, because Cloudflare's build doesn't have LibreOffice. **After any edit to `resume.json`, rerun `npm run resume:pdf` and commit the new PDF too.** If the PDF is missing, the download button is hidden.
 
-1. Edit `src/data/resume.json`. Fields:
-   - `headline`: one line, shown as the page title
-   - `summary`: two or three sentences
-   - `highlights`: three or four short wins
-   - `experience[]`: `role`, `org`, `location`, `start`, `end`, `bullets[]`
-   - `skills[]`: `group` and `items[]`
-   - `certifications[]`, `education[]`: plain strings
-   - `draft`: set to `false` once the content is final (removes the "being updated" notice)
-2. Regenerate the PDF with the existing `build.js` → LibreOffice pipeline and save it as `public/resume.pdf`. If there's no PDF, the download button is hidden.
-3. Commit and push. The site redeploys in a minute or two.
+## Fields
 
-**Keep the two in sync:** the best long-term setup is to have `build.js` read `src/data/resume.json`, so the PDF and the web page come from the same content.
+- `headline`: one line, shown as the page title
+- `summary`: two or three sentences, first person
+- `highlights`: three or four short wins
+- `experience[]`: `role`, `org`, `location`, `start`, `end`, `bullets[]`
+- `earlier[]`: one-line strings for older jobs (shown as a single "Earlier:" line)
+- `skills[]`: `group` and `items[]`
+- `certifications[]`, `education[]`: plain strings
+- `draft`: `true` shows a "being updated" notice on the page
 
-The public version should not include a phone number or street address. City and state plus the site email are enough.
+## What goes in the public version
 
-Jason's notes on presentation (don't present the Aveta Six Sigma certificate as a belt; call the tiered daily management system LDM/SQDCE, not MDI) apply here too.
+This is the general-audience version. Tailored resumes for specific applications live in the Job Hunt project and are **not** copied here wholesale.
+
+- No phone number or street address. City/state and `jason@jasonarussell.com` only (both come from `site.json`).
+- No company dollar figures (e.g. scrap savings in $). Use percentages and counts.
+- Leave out angles specific to one application (internal-candidate framing, role-specific emphasis).
+- Call the tiered daily management system **LDM/SQDCE**, not MDI.
+- Don't present the Aveta Six Sigma certificate as a belt.
+- Don't claim coordinating R&D trials or writing the trials procedure; the contribution was getting R&D and plant ops communicating.
+
+## Monthly check
+
+A scheduled task reviews this file once a month against Jason's latest resume work and asks him whether anything new should be added. Changes go through a pull request for him to approve, never straight to `main`.

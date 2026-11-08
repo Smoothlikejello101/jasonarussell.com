@@ -1,46 +1,62 @@
 {
-  "_readme": "Single source of truth for the resume. The web page (/resume) is built from this file. Keep the PDF at public/resume.pdf in sync. While draft is true, the page shows a notice that it is being finalized.",
-  "draft": true,
+  "_readme": "Single source of truth for the resume. The web page (/resume) and the PDF (public/resume.pdf, built by tools/resume/build.mjs) both come from this file. See docs/RESUME-UPDATES.md. Public version: no phone number, no street address, no company dollar figures.",
+  "draft": false,
   "headline": "Continuous improvement and business systems in manufacturing",
-  "summary": "I help manufacturing plants run better by getting the right people talking, making problems visible, and building systems that make the right way the easy way. My work spans lean and continuous improvement, supply chain systems, and plant operations in roofing, investment casting, and firearms production.",
+  "summary": "I help manufacturing plants run better by getting the right people talking, making problems visible, and building systems that make the right way the easy way. Over 12 years I’ve worked in continuous-web roofing production, investment casting, and firearms manufacturing, leading lean and CI work, supply chain system rollouts, and frontline problem solving grounded in Shingo principles.",
   "highlights": [
-    "Site lead for a Körber WMS migration from two legacy systems, recognized by senior supply chain leadership as the company's smoothest WMS rollout",
-    "Scrap reduction worth about $170K a year in directly attributable savings",
-    "Formally trained about 100 people in problem solving and lean methods"
+    "De facto site lead for a Körber WMS migration from two legacy systems, recognized by senior supply chain leadership as the company’s smoothest WMS rollout",
+    "Led a global team (GAF, Grace, BMI; three countries) to win the Standard Industries Digital Academy pitch, judged by C-level executives",
+    "Cut a major scrap category by more than half, reducing total plant scrap by about 10%",
+    "Formally trained about 100 employees in structured problem solving and lean methods"
   ],
   "experience": [
     {
       "role": "Business System Specialist",
       "org": "Siplast (GAF / Standard Industries)",
       "location": "Arkadelphia, AR",
-      "start": "",
+      "start": "April 2023",
       "end": "Present",
       "bullets": [
-        "Served as de facto site lead for a Körber WMS migration from two legacy systems; coordinated warehouse, quality, and production teams, trained about 30 users, engineered poka-yoke error-proofing into new workflows, and ran the wall-to-wall physical inventory before cutover.",
-        "Transformed Tier 0 and Tier 1 of the plant's LDM/SQDCE tiered daily management system and rolled out the plant-level board and process.",
-        "Delivered scrap reductions worth about $170K a year in directly attributable savings.",
-        "Leading Bill of Materials work for the company's SAP preparation; helped define the returned-material (RMA) process with the lab and supply chain.",
-        "Lead the FORCE employee-engagement program; supervise two direct reports in the pallet mill."
+        "Körber WMS migration: coordinated warehouse, quality, and production teams with no shipping supervisor or supply chain manager in place; ran a wall-to-wall physical inventory before cutover, built poka-yoke error-proofing into new workflows, and trained about 30 users",
+        "Led a scrap reduction initiative targeting wet-sheet defects (with a secondary reduction in sticking), cutting that category by more than half and total plant scrap by about 10%",
+        "Transformed Tier 0 and Tier 1 of the plant’s LDM/SQDCE tiered daily management from a compliance exercise into a working problem-solving system, expanded it across departments, and rolled out the plant-level board and process",
+        "Implemented hour-by-hour boards for operators and partnered with site leadership on Leader Standard Work for production supervisors",
+        "Doing Bill of Materials work for the site’s SAP readiness; helped the lab and supply chain define the returned-material (RMA) process",
+        "Ran a week-long MRO inventory overhaul with a 26-person cross-functional team, cataloging 3,000+ items and raising system coverage from 40% to nearly 100%",
+        "Built frontline 5S audits and a dual-track safety audit for operators and leadership; used FMEA to structure shift-by-shift safety-culture events",
+        "Got R&D and plant operations, separated by a parking lot, communicating regularly so trials became jointly coordinated",
+        "Lead the FORCE employee-engagement program; supervise two employees in the pallet mill"
       ]
     },
     {
-      "role": "Role to confirm",
-      "org": "Ruger",
-      "location": "",
-      "start": "",
-      "end": "",
+      "role": "Team Leader / Continuous Improvement Specialist",
+      "org": "Sturm, Ruger & Co.",
+      "location": "Newport, NH",
+      "start": "February 2014",
+      "end": "April 2023",
       "bullets": [
-        "Led a team, including conducting performance reviews."
+        "Led a team of 12–15, including performance reviews, running the investment casting “super cell”: wax injection, shell building, foundry, and initial processing",
+        "Improved foundry throughput from 15–16 to 17–18 parts per hour with the team, reaching the bottleneck limit (a 10–15% gain)",
+        "Twice recognized with the CEO’s Discretionary Award for continuous improvement contributions (2017, 2023)",
+        "The site’s go-to resource for small-scale improvement, with hands-on time across casting, machining, finishing, assembly, test, and packaging"
       ]
     }
   ],
-  "skills": [
-    { "group": "Continuous improvement", "items": ["Lean", "Kaizen", "Root-cause analysis (6M)", "FMEA", "Kanban and replenishment", "Value stream mapping", "Tiered daily management"] },
-    { "group": "Systems", "items": ["Körber WMS", "SAP readiness and BOM structure", "Process documentation"] },
-    { "group": "People", "items": ["Training and facilitation", "Cross-functional coordination", "Employee engagement"] }
+  "earlier": [
+    "Store Manager, Dollar Tree, New Hampshire (2012–2013; promoted from Assistant Manager)",
+    "Field Representative, WW Feed & Supply, La Junta, CO (2010–2011)"
   ],
-  "education": [],
+  "skills": [
+    { "group": "Continuous improvement", "items": ["Lean", "Kaizen", "5S", "Root cause analysis (6M)", "FMEA", "Value stream mapping", "Visual management", "Tiered daily management", "Leader Standard Work"] },
+    { "group": "Systems and supply chain", "items": ["Körber WMS", "SAP readiness and BOM structure", "Inventory accuracy and MRO", "Kanban and replenishment"] },
+    { "group": "People", "items": ["Training and facilitation", "Cross-functional coordination", "Employee engagement", "Change management"] }
+  ],
+  "education": [
+    "B.S., Supply Chain and Operations Management, Western Governors University (2026)"
+  ],
   "certifications": [
-    "Shingo continuous improvement credentials (details to confirm)"
+    "Shingo Institute alumni: all six workshops (2025)",
+    "Six Sigma certification, Aveta Business Institute",
+    "Statistical Process Control training, GAF"
   ]
 }
