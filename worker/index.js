@@ -130,8 +130,31 @@ export function titleFromFilename(key) {
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Untitled";
 }
 
+// Cloudflare Images accepts originals up to about 20 MB.
+const MAX_INPUT_BYTES = 20 * 1024 * 1024;
+
 async function renderImage(env, url, key, variantName) {
+  try {
+    return await renderImageInner(env, url, key, variantName);
+  } catch (err) {
+    console.error("renderImage failed", key, variantName, err && err.stack ? err.stack : err);
+    return new Response(`Image processing failed: ${err && err.message ? err.message : err}`, {
+      status: 502,
+      headers: { "Cache-Control": "no-store" },
+    });
+  }
+}
+
+async function renderImageInner(env, url, key, variantName) {
   const v = VARIANTS[variantName];
+  const head = await env.PHOTOS.head(key);
+  if (!head) return notFound();
+  if (head.size > MAX_INPUT_BYTES) {
+    return new Response(
+      `Original is ${(head.size / 1048576).toFixed(1)} MB; the limit is 20 MB. Re-export at 4000px on the long edge (see docs/PHOTOS.md).`,
+      { status: 413, headers: { "Cache-Control": "no-store" } }
+    );
+  }
   const original = await env.PHOTOS.get(key);
   if (!original) return notFound();
 
