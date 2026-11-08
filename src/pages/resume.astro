@@ -1,0 +1,119 @@
+---
+import fs from "node:fs";
+import Base from "../layouts/Base.astro";
+import site from "../data/site.json";
+import resume from "../data/resume.json";
+
+const hasPdf = fs.existsSync(new URL("../../public/resume.pdf", import.meta.url));
+const dates = (j: { start?: string; end?: string }) => [j.start, j.end].filter(Boolean).join(" – ");
+---
+<Base title="Resume" current="resume" description={`${site.name}: ${resume.headline}.`}>
+  <header class="wrap page-head resume-head">
+    <div>
+      <h1>{resume.headline}</h1>
+      <p>{resume.summary}</p>
+    </div>
+    <div class="resume-contact sans">
+      <p>{site.location}<br /><a href={`mailto:${site.email}`}>{site.email}</a></p>
+      {hasPdf && <a class="button" href="/resume.pdf" download="Jason-A-Russell-Resume.pdf">Download PDF</a>}
+    </div>
+  </header>
+
+  {resume.draft && (
+    <div class="wrap"><p class="draft sans" role="note">This resume is being updated. Check back soon for the full version.</p></div>
+  )}
+
+  <div class="wrap resume-body">
+    <section aria-labelledby="hl-h" class="highlights">
+      <h2 id="hl-h">Highlights</h2>
+      <ul>{resume.highlights.map((h) => <li>{h}</li>)}</ul>
+    </section>
+
+    <section aria-labelledby="exp-h">
+      <h2 id="exp-h">Experience</h2>
+      {resume.experience.map((job) => (
+        <article class="job">
+          <div class="job-head">
+            <h3>{job.role}<span class="org">, {job.org}</span></h3>
+            <p class="sans job-meta">{[job.location, dates(job)].filter(Boolean).join(", ")}</p>
+          </div>
+          <ul>{job.bullets.map((b) => <li>{b}</li>)}</ul>
+        </article>
+      ))}
+    </section>
+
+    <div class="resume-side">
+      <section aria-labelledby="sk-h">
+        <h2 id="sk-h">Skills</h2>
+        {resume.skills.map((s) => (
+          <div class="skill-group">
+            <h3 class="sans">{s.group}</h3>
+            <p>{s.items.join(", ")}</p>
+          </div>
+        ))}
+      </section>
+
+      {resume.certifications.length > 0 && (
+        <section aria-labelledby="cert-h">
+          <h2 id="cert-h">Training and credentials</h2>
+          <ul>{resume.certifications.map((c) => <li>{c}</li>)}</ul>
+        </section>
+      )}
+
+      {resume.education.length > 0 && (
+        <section aria-labelledby="ed-h">
+          <h2 id="ed-h">Education</h2>
+          <ul>{resume.education.map((e: string) => <li>{e}</li>)}</ul>
+        </section>
+      )}
+    </div>
+  </div>
+</Base>
+
+<style>
+  .resume-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2rem 4rem; align-items: end; }
+  .resume-head h1 { max-width: 16em; }
+  .resume-head p { color: var(--ink); }
+  .resume-contact { font-size: 0.95rem; color: var(--muted); }
+  .resume-contact p { margin-bottom: 1rem; }
+  .draft {
+    font-size: 0.95rem; background: var(--paper-2); padding: 0.9rem 1.1rem; margin: 0;
+    border-left: 3px solid var(--petal);
+  }
+
+  .resume-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    grid-template-areas: "hl side" "exp side";
+    gap: 0 4rem;
+    margin-top: 2rem;
+  }
+  .highlights { grid-area: hl; }
+  .resume-body > section:nth-of-type(2) { grid-area: exp; }
+  .resume-side { grid-area: side; }
+
+  h2 {
+    font-size: var(--t-md); font-weight: 400;
+    padding-bottom: 0.5rem; margin: 2.5rem 0 1.25rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .highlights h2 { margin-top: 0; }
+  .resume-side section:first-child h2 { margin-top: 0; }
+  ul { padding-left: 1.1em; margin: 0; }
+  li { margin-bottom: 0.6em; max-width: var(--measure); }
+  li::marker { color: var(--petal); }
+
+  .job { margin-bottom: 2.25rem; }
+  .job h3 { font-size: 1.3rem; font-weight: 500; }
+  .job .org { font-weight: 400; }
+  .job-meta { font-size: 0.9rem; color: var(--muted); margin: 0.3rem 0 0.9rem; }
+
+  .skill-group h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .skill-group p { font-size: 1.05rem; color: var(--muted); }
+
+  @media (max-width: 52rem) {
+    .resume-head { grid-template-columns: 1fr; }
+    .resume-body { grid-template-columns: 1fr; grid-template-areas: "hl" "exp" "side"; }
+    .resume-side section:first-child h2 { margin-top: 2.5rem; }
+  }
+</style>

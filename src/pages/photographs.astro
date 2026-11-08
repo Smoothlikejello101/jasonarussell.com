@@ -1,0 +1,152 @@
+---
+import Base from "../layouts/Base.astro";
+import site from "../data/site.json";
+---
+<Base title="Photographs" current="photographs"
+  description="Macro photographs of flowers and other small things by Jason A. Russell. Prints available on request.">
+  <header class="wrap page-head">
+    <h1>Photographs</h1>
+    <p>
+      Mostly macro florals, with the occasional detour. Prints are available: ask about any
+      photograph and I'll send sizes and prices.
+    </p>
+  </header>
+
+  <section class="wrap" aria-label="Gallery">
+    <p class="sans gallery-status" data-status role="status">Loading photographs…</p>
+    <ul class="gallery" data-gallery data-email={site.email}></ul>
+  </section>
+
+  <dialog class="viewer" data-viewer aria-label="Photograph">
+    <div class="viewer-body">
+      <div class="viewer-image"><img alt="" /></div>
+      <div class="viewer-info">
+        <h2 data-title></h2>
+        <p data-caption></p>
+        <p><a class="button" data-inquire href="#">Ask about a print</a></p>
+        <div class="viewer-nav sans">
+          <button type="button" data-prev>Previous</button>
+          <button type="button" data-next>Next</button>
+          <button type="button" data-close>Close</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+</Base>
+
+<script>
+  import { getPhotos, imgUrl, inquiryLink } from "../scripts/photos.js";
+
+  const list = document.querySelector("[data-gallery]");
+  const status = document.querySelector("[data-status]");
+  const viewer = document.querySelector("[data-viewer]");
+  const email = list.dataset.email;
+  let photos = [];
+  let current = -1;
+
+  function open(i) {
+    current = (i + photos.length) % photos.length;
+    const p = photos[current];
+    const img = viewer.querySelector("img");
+    img.src = imgUrl(p, "full");
+    img.alt = p.caption ? `${p.title}. ${p.caption}` : p.title;
+    viewer.querySelector("[data-title]").textContent = p.title;
+    viewer.querySelector("[data-caption]").textContent = p.caption;
+    viewer.querySelector("[data-inquire]").href = inquiryLink(email, p);
+    if (!viewer.open) viewer.showModal();
+    history.replaceState(null, "", `#${encodeURIComponent(p.file)}`);
+  }
+
+  function close() {
+    viewer.close();
+  }
+
+  viewer.addEventListener("close", () => {
+    history.replaceState(null, "", location.pathname);
+    list.querySelectorAll("button")[current]?.focus();
+  });
+  viewer.querySelector("[data-prev]").addEventListener("click", () => open(current - 1));
+  viewer.querySelector("[data-next]").addEventListener("click", () => open(current + 1));
+  viewer.querySelector("[data-close]").addEventListener("click", close);
+  viewer.addEventListener("click", (e) => { if (e.target === viewer) close(); });
+  viewer.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") open(current - 1);
+    if (e.key === "ArrowRight") open(current + 1);
+  });
+  // Discourage casual right-click saving (it can't stop a determined person; the watermark is the real protection).
+  document.addEventListener("contextmenu", (e) => { if (e.target.tagName === "IMG") e.preventDefault(); });
+
+  getPhotos()
+    .then((items) => {
+      photos = items;
+      if (!photos.length) {
+        status.textContent = "No photographs yet. New ones appear here a few minutes after they're uploaded.";
+        return;
+      }
+      status.hidden = true;
+      photos.forEach((p, i) => {
+        const li = document.createElement("li");
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.setAttribute("aria-label", `View ${p.title}`);
+        const img = document.createElement("img");
+        img.loading = i < 6 ? "eager" : "lazy";
+        img.decoding = "async";
+        img.alt = "";
+        if (p.width && p.height) { img.width = p.width; img.height = p.height; }
+        img.src = imgUrl(p, "thumb");
+        btn.append(img);
+        btn.addEventListener("click", () => open(i));
+        li.append(btn);
+        list.append(li);
+      });
+      const hash = decodeURIComponent(location.hash.slice(1));
+      const start = hash ? photos.findIndex((p) => p.file === hash) : -1;
+      if (start >= 0) open(start);
+    })
+    .catch(() => {
+      status.textContent = "The photographs didn't load. Refresh the page to try again.";
+    });
+</script>
+
+<style>
+  .gallery-status { color: var(--muted); }
+  .gallery {
+    list-style: none; margin: 0; padding: 0;
+    columns: 3 18rem;
+    column-gap: 1rem;
+  }
+  .gallery :global(li) { break-inside: avoid; margin-bottom: 1rem; }
+  .gallery :global(button) {
+    display: block; width: 100%; padding: 0; border: 0; background: var(--paper-2); cursor: zoom-in;
+  }
+  .gallery :global(img) { width: 100%; height: auto; }
+  .gallery :global(button:hover img) { opacity: 0.88; }
+
+  .viewer {
+    width: min(96vw, 84rem); max-width: none; max-height: 94vh;
+    padding: 0; border: 0; background: var(--ink); color: var(--paper);
+  }
+  .viewer::backdrop { background: rgb(20 28 25 / 0.82); }
+  .viewer-body { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; min-height: 0; }
+  .viewer-image { display: grid; place-items: center; background: #151d1a; min-height: 0; }
+  .viewer-image img { max-height: 92vh; width: auto; max-width: 100%; object-fit: contain; }
+  .viewer-info { padding: 2rem 1.75rem; display: flex; flex-direction: column; }
+  .viewer-info h2 { font-size: var(--t-md); margin-bottom: 0.75rem; }
+  .viewer-info p { color: #c9d0ca; font-size: 1rem; }
+  .viewer .button { background: #b9a2dc; color: var(--ink); }
+  .viewer .button:hover { background: #d3c3ec; color: var(--ink); }
+  .viewer-nav { margin-top: auto; display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 1.5rem; }
+  .viewer-nav button {
+    font: inherit; font-size: 0.9rem; color: var(--paper); background: transparent;
+    border: 1px solid #5f6d67; border-radius: 999px; padding: 0.45em 1em; cursor: pointer;
+  }
+  .viewer-nav button:hover { border-color: var(--paper); }
+
+  @media (max-width: 52rem) {
+    .viewer-body { grid-template-columns: 1fr; }
+    .viewer-image img { max-height: 62vh; }
+    .viewer-info { padding: 1.25rem; }
+    .viewer-nav { margin-top: 0.5rem; }
+  }
+</style>

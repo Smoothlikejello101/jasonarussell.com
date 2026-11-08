@@ -1,0 +1,46 @@
+{
+  "_readme": "Single source of truth for the resume. The web page (/resume) is built from this file. Keep the PDF at public/resume.pdf in sync. While draft is true, the page shows a notice that it is being finalized.",
+  "draft": true,
+  "headline": "Continuous improvement and business systems in manufacturing",
+  "summary": "I help manufacturing plants run better by getting the right people talking, making problems visible, and building systems that make the right way the easy way. My work spans lean and continuous improvement, supply chain systems, and plant operations in roofing, investment casting, and firearms production.",
+  "highlights": [
+    "Site lead for a Körber WMS migration from two legacy systems, recognized by senior supply chain leadership as the company's smoothest WMS rollout",
+    "Scrap reduction worth about $170K a year in directly attributable savings",
+    "Formally trained about 100 people in problem solving and lean methods"
+  ],
+  "experience": [
+    {
+      "role": "Business System Specialist",
+      "org": "Siplast (GAF / Standard Industries)",
+      "location": "Arkadelphia, AR",
+      "start": "",
+      "end": "Present",
+      "bullets": [
+        "Served as de facto site lead for a Körber WMS migration from two legacy systems; coordinated warehouse, quality, and production teams, trained about 30 users, engineered poka-yoke error-proofing into new workflows, and ran the wall-to-wall physical inventory before cutover.",
+        "Transformed Tier 0 and Tier 1 of the plant's LDM/SQDCE tiered daily management system and rolled out the plant-level board and process.",
+        "Delivered scrap reductions worth about $170K a year in directly attributable savings.",
+        "Leading Bill of Materials work for the company's SAP preparation; helped define the returned-material (RMA) process with the lab and supply chain.",
+        "Lead the FORCE employee-engagement program; supervise two direct reports in the pallet mill."
+      ]
+    },
+    {
+      "role": "Role to confirm",
+      "org": "Ruger",
+      "location": "",
+      "start": "",
+      "end": "",
+      "bullets": [
+        "Led a team, including conducting performance reviews."
+      ]
+    }
+  ],
+  "skills": [
+    { "group": "Continuous improvement", "items": ["Lean", "Kaizen", "Root-cause analysis (6M)", "FMEA", "Kanban and replenishment", "Value stream mapping", "Tiered daily management"] },
+    { "group": "Systems", "items": ["Körber WMS", "SAP readiness and BOM structure", "Process documentation"] },
+    { "group": "People", "items": ["Training and facilitation", "Cross-functional coordination", "Employee engagement"] }
+  ],
+  "education": [],
+  "certifications": [
+    "Shingo continuous improvement credentials (details to confirm)"
+  ]
+}

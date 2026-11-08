@@ -1,0 +1,185 @@
+---
+import Base from "../layouts/Base.astro";
+import site from "../data/site.json";
+---
+<Base>
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Jason A.<br />Russell</h1>
+      <p class="lede">
+        I lead continuous improvement and business systems work at Siplast's roofing plant in
+        Arkadelphia, Arkansas, where the job is making good work easier to do. Off the clock I
+        photograph flowers up close and build FullGrown, a garden planner.
+      </p>
+      <p class="hero-actions">
+        <a class="button" href="/photographs/">See photographs</a>
+        <a class="button quiet" href="/resume/">Read my resume</a>
+      </p>
+    </div>
+    <figure class="hero-photo" data-featured>
+      <div class="hero-frame"></div>
+      <figcaption class="sans"></figcaption>
+    </figure>
+  </section>
+
+  <section class="wrap intro-grid" aria-label="What's here">
+    <div>
+      <h2><a href="/resume/">Work</a></h2>
+      <p>
+        Lean and continuous improvement, warehouse and ERP systems, and plant operations,
+        across roofing, investment casting, and firearms manufacturing.
+      </p>
+    </div>
+    <div>
+      <h2><a href="/photographs/">Photographs</a></h2>
+      <p>Mostly macro florals, plus whatever else holds still long enough. Prints are available on request.</p>
+    </div>
+    <div>
+      <h2><a href="/projects/">Projects</a></h2>
+      <p>Tools I've built because I needed them, from garden planning to finding public land to explore.</p>
+    </div>
+  </section>
+
+  <section class="fullgrown">
+    <div class="wrap fullgrown-inner">
+      <div>
+        <h2>FullGrown</h2>
+        <p class="sans status">{site.fullgrown.status}</p>
+      </div>
+      <div>
+        <p>
+          The garden planner I wish I'd had when I started. Describe what you need, say a native
+          shrub for full sun in zone 8a that blooms purple in October and feeds butterflies, and it
+          finds the plants that fit.
+        </p>
+        <p>
+          Then place them in a drawing of your own beds and plan for how the garden will look in
+          five years, once it's full grown.
+        </p>
+        <p><a class="button leaf" href={site.fullgrown.url}>Visit FullGrown.garden</a></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap recent" aria-labelledby="recent-h">
+    <div class="recent-head">
+      <h2 id="recent-h">Recent photographs</h2>
+      <a class="sans" href="/photographs/">See all photographs</a>
+    </div>
+    <ul class="recent-strip" data-recent></ul>
+  </section>
+</Base>
+
+<script>
+  import { getPhotos, imgUrl } from "../scripts/photos.js";
+
+  const figure = document.querySelector("[data-featured]");
+  const strip = document.querySelector("[data-recent]");
+
+  getPhotos()
+    .then((photos) => {
+      if (!photos.length) {
+        figure.hidden = true;
+        strip.closest("section").hidden = true;
+        return;
+      }
+      const featured = photos.find((p) => p.featured) || photos[0];
+      const img = new Image();
+      img.src = imgUrl(featured, "full");
+      img.alt = featured.caption ? `${featured.title}. ${featured.caption}` : featured.title;
+      img.decoding = "async";
+      figure.querySelector(".hero-frame").append(img);
+      figure.querySelector("figcaption").textContent = featured.title;
+
+      photos.filter((p) => p !== featured).slice(0, 4).forEach((p) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="/photographs/#${encodeURIComponent(p.file)}"><img loading="lazy" alt=""></a>`;
+        const t = li.querySelector("img");
+        t.src = imgUrl(p, "thumb");
+        t.alt = p.title;
+        strip.append(li);
+      });
+    })
+    .catch(() => {
+      figure.hidden = true;
+      strip.closest("section").hidden = true;
+    });
+</script>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 3rem;
+    padding-left: max(var(--gutter), calc((100vw - var(--max)) / 2 + var(--gutter)));
+    margin-top: 1.5rem;
+  }
+  .hero h1 {
+    font-size: var(--t-hero);
+    font-weight: 300;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 2rem;
+  }
+  .lede { max-width: 30em; font-size: 1.25rem; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+  .hero-text { padding-bottom: 1rem; }
+
+  .hero-photo { margin: 0; }
+  .hero-frame {
+    aspect-ratio: 4 / 5;
+    max-height: 82vh;
+    background: var(--paper-2);
+    overflow: hidden;
+  }
+  .hero-frame :global(img) { width: 100%; height: 100%; object-fit: cover; }
+  .hero-photo figcaption {
+    font-size: var(--t-sm); color: var(--muted);
+    padding: 0.6rem var(--gutter) 0 0; text-align: right;
+  }
+
+  .intro-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2.5rem;
+    margin-top: 6rem;
+    margin-bottom: 6rem;
+  }
+  .intro-grid h2 { font-size: var(--t-md); margin-bottom: 0.75rem; }
+  .intro-grid h2 a { color: var(--ink); text-decoration: none; box-shadow: inset 0 -1px 0 var(--rule); }
+  .intro-grid h2 a:hover { color: var(--petal); box-shadow: inset 0 -2px 0 var(--petal); }
+  .intro-grid p { color: var(--muted); font-size: 1.05rem; }
+
+  .fullgrown { background: var(--leaf-paper); padding: 4.5rem 0; }
+  .fullgrown-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 2rem 4rem;
+  }
+  .fullgrown h2 { font-size: var(--t-xl); font-weight: 300; color: var(--leaf); }
+  .fullgrown .status { font-size: var(--t-sm); color: var(--leaf); margin-top: 0.75rem; font-weight: 600; }
+  .fullgrown p { max-width: var(--measure); }
+  .button.leaf { background: var(--leaf); margin-top: 0.5rem; }
+  .button.leaf:hover { background: #2c4224; }
+
+  .recent { margin-top: 5rem; }
+  .recent-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .recent-head h2 { font-size: var(--t-lg); font-weight: 300; }
+  .recent-head a { font-size: 0.95rem; }
+  .recent-strip {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem;
+  }
+  .recent-strip :global(img) { aspect-ratio: 1; object-fit: cover; width: 100%; background: var(--paper-2); }
+  .recent-strip :global(a:hover img) { opacity: 0.85; }
+
+  @media (max-width: 52rem) {
+    .hero { grid-template-columns: 1fr; padding-left: 0; gap: 2rem; }
+    .hero-text { padding: 0 var(--gutter); }
+    .hero-frame { aspect-ratio: 4 / 5; max-height: none; }
+    .intro-grid { grid-template-columns: 1fr; gap: 2rem; margin-top: 4rem; margin-bottom: 4rem; }
+    .fullgrown-inner { grid-template-columns: 1fr; }
+    .recent-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>

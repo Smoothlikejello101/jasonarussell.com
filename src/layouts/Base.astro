@@ -1,0 +1,68 @@
+---
+import "@fontsource/spectral/300.css";
+import "@fontsource/spectral/300-italic.css";
+import "@fontsource/spectral/400.css";
+import "@fontsource/spectral/400-italic.css";
+import "@fontsource/spectral/500.css";
+import "@fontsource/public-sans/400.css";
+import "@fontsource/public-sans/600.css";
+import "../styles/global.css";
+import site from "../data/site.json";
+
+interface Props {
+  title?: string;
+  description?: string;
+  current?: "resume" | "photographs" | "projects";
+}
+const { title, description, current } = Astro.props;
+const pageTitle = title ? `${title} | ${site.name}` : site.name;
+const desc =
+  description ??
+  "Jason A. Russell: continuous improvement in manufacturing, macro photography, and FullGrown, a garden-planning app.";
+const year = new Date().getFullYear();
+// Cloudflare Web Analytics token (Dashboard → Analytics & Logs → Web Analytics). Leave empty to disable.
+const analyticsToken = "";
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={desc} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={desc} />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#edefea" />
+  </head>
+  <body>
+    <header class="wrap site-header">
+      <a class="wordmark" href="/">{site.name}</a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="/resume/" aria-current={current === "resume" ? "page" : undefined}>Resume</a>
+        <a href="/photographs/" aria-current={current === "photographs" ? "page" : undefined}>Photographs</a>
+        <a href="/projects/" aria-current={current === "projects" ? "page" : undefined}>Projects</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <footer class="wrap site-footer">
+      <span>© {year} {site.name}. Photographs may not be reused without permission.</span>
+      <span><a href={`mailto:${site.email}`}>{site.email}</a></span>
+    </footer>
+
+    {analyticsToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: analyticsToken })}
+      ></script>
+    )}
+  </body>
+</html>

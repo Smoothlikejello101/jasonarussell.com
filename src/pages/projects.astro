@@ -1,0 +1,39 @@
+---
+import Base from "../layouts/Base.astro";
+import projects from "../data/projects.json";
+---
+<Base title="Projects" current="projects" description="Tools and projects by Jason A. Russell.">
+  <header class="wrap page-head">
+    <h1>Projects</h1>
+    <p>Things I've built, mostly because I needed them and couldn't find them.</p>
+  </header>
+
+  <section class="wrap">
+    <ul class="projects">
+      {projects.map((p) => (
+        <li>
+          <h2>{p.url ? <a href={p.url}>{p.name}</a> : p.name}</h2>
+          <p class="sans status">{p.status}</p>
+          <p class="summary">{p.summary}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .projects { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--rule); }
+  .projects li {
+    display: grid; grid-template-columns: 16rem minmax(0, 1fr); gap: 0.25rem 3rem;
+    padding: 2rem 0; border-bottom: 1px solid var(--rule);
+  }
+  .projects h2 { font-size: var(--t-md); grid-column: 1; }
+  .projects h2 a { color: var(--ink); }
+  .projects h2 a:hover { color: var(--petal); }
+  .status { grid-column: 1; font-size: var(--t-sm); color: var(--muted); margin: 0; }
+  .summary { grid-column: 2; grid-row: 1 / span 2; max-width: var(--measure); margin: 0; }
+  @media (max-width: 44rem) {
+    .projects li { grid-template-columns: 1fr; }
+    .summary { grid-column: 1; grid-row: auto; margin-top: 0.75rem; }
+  }
+</style>

@@ -1,0 +1,113 @@
+/* Tokens ------------------------------------------------------------- */
+:root {
+  --paper: #edefea;     /* cool, leaf-grey paper */
+  --paper-2: #e3e7e0;
+  --ink: #1e2a26;       /* deep green slate */
+  --muted: #56615c;
+  --rule: #c8cfc7;
+  --petal: #5e3f86;     /* violet — links, actions */
+  --petal-deep: #472d68;
+  --leaf: #3d5832;      /* FullGrown */
+  --leaf-paper: #dfe6d5;
+
+  --serif: "Spectral", Georgia, "Times New Roman", serif;
+  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Type scale (perfect fourth, 1.333) */
+  --t-sm: 0.875rem;
+  --t-base: 1.1875rem;  /* 19px serif body */
+  --t-md: 1.5rem;
+  --t-lg: 2rem;
+  --t-xl: clamp(2.4rem, 5vw, 3.6rem);
+  --t-hero: clamp(3.2rem, 9vw, 6.6rem);
+
+  --gutter: clamp(1.25rem, 4vw, 3rem);
+  --measure: 36em;
+  --max: 74rem;
+}
+
+/* Base --------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: var(--t-base);
+  line-height: 1.62;
+  font-feature-settings: "kern", "liga", "onum";
+  text-rendering: optimizeLegibility;
+}
+img { max-width: 100%; display: block; }
+h1, h2, h3 { font-weight: 400; line-height: 1.12; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0 0 1em; }
+
+a { color: var(--petal); text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+a:hover { color: var(--petal-deep); text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--petal); outline-offset: 3px; border-radius: 2px; }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+.sans { font-family: var(--sans); }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* Buttons ------------------------------------------------------------ */
+.button {
+  display: inline-block;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.75em 1.25em;
+  border-radius: 999px;
+  background: var(--petal);
+  color: #fff;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+}
+.button:hover { background: var(--petal-deep); color: #fff; }
+.button.quiet {
+  background: transparent; color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+.button.quiet:hover { background: var(--ink); color: var(--paper); }
+
+/* Header / footer ---------------------------------------------------- */
+.site-header {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 1rem 2rem; flex-wrap: wrap;
+  padding-top: 1.5rem; padding-bottom: 1.5rem;
+}
+.wordmark {
+  font-size: 1.3rem; font-weight: 500; color: var(--ink); text-decoration: none;
+  letter-spacing: -0.005em;
+}
+.wordmark:hover { color: var(--ink); }
+.site-nav { display: flex; gap: 1.5rem; font-family: var(--sans); font-size: 0.95rem; }
+.site-nav a { color: var(--ink); text-decoration: none; padding: 0.25rem 0; }
+.site-nav a:hover { color: var(--petal); }
+.site-nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--petal); }
+
+.site-footer {
+  margin-top: 6rem; padding-top: 2rem; padding-bottom: 3rem;
+  position: relative;
+  font-family: var(--sans); font-size: var(--t-sm); color: var(--muted);
+  display: flex; flex-wrap: wrap; gap: 0.75rem 2rem; justify-content: space-between;
+}
+.site-footer::before {
+  content: ""; position: absolute; top: 0; left: var(--gutter); right: var(--gutter);
+  border-top: 1px solid var(--rule);
+}
+.site-footer a { color: var(--ink); }
+
+/* Page headings ------------------------------------------------------ */
+.page-head { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+.page-head h1 { font-size: var(--t-xl); font-weight: 300; }
+.page-head p { max-width: var(--measure); color: var(--muted); margin-top: 1rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

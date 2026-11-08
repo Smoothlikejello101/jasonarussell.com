@@ -1,0 +1,37 @@
+{
+  // One Cloudflare Worker serves the whole site:
+  //   - static pages built by Astro (./dist)
+  //   - /api/photos        -> list of photos in the private R2 bucket
+  //   - /img/thumb/<file>  -> small watermarked version (made on demand, then cached)
+  //   - /img/full/<file>   -> larger watermarked version (made on demand, then cached)
+  // The full-size originals in R2 never get a public URL.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jasonarussell-com",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-01",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    // Run the Worker on every request so www -> apex redirect always applies.
+    "run_worker_first": true
+  },
+
+  // Private bucket that holds your full-size photo exports.
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "jasonarussell-photos" }
+  ],
+
+  // Cloudflare Images: resizes and watermarks the originals.
+  "images": { "binding": "IMAGES" },
+
+  // Attach the Worker to your domain. Cloudflare creates the DNS record
+  // and HTTPS certificate for you on first deploy.
+  "routes": [
+    { "pattern": "jasonarussell.com", "custom_domain": true },
+    { "pattern": "www.jasonarussell.com", "custom_domain": true }
+  ],
+
+  "observability": { "enabled": true }
+}

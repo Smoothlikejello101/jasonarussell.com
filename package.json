@@ -1,0 +1,22 @@
+{
+  "name": "jasonarussell-com",
+  "version": "1.0.0",
+  "description": "Personal site for Jason A. Russell — jasonarussell.com",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro build && wrangler dev",
+    "deploy": "astro build && wrangler deploy",
+    "build:demo": "PUBLIC_DEMO=1 astro build --outDir demo-dist"
+  },
+  "dependencies": {
+    "@fontsource/public-sans": "^5.3.0",
+    "@fontsource/spectral": "^5.3.0",
+    "astro": "^7.4.7"
+  },
+  "devDependencies": {
+    "wrangler": "^4.158.0"
+  },
+  "private": true,
+  "type": "module"
+}
