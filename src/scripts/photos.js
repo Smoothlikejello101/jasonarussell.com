@@ -27,7 +27,10 @@ export async function getPhotos() {
 }
 
 export function imgUrl(photo, variant) {
-  if (DEMO) return `/demo/${variant}/${photo.file.replace(/\.jpe?g$/i, ".webp")}`;
+  if (DEMO) {
+    const demoBase = ["..", "demo", ""].join("/"); // relative to the bundled script, for static previews
+    return new URL(demoBase, import.meta.url).href + `${variant}/${photo.file.replace(/\.jpe?g$/i, ".webp")}`;
+  }
   return `/img/${variant}/${encodeURIComponent(photo.file)}`;
 }
 
