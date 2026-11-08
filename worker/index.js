@@ -126,8 +126,9 @@ export function titleFromFilename(key) {
   if (/^_?(img|dsc|dscn|dscf|pxl|p\d{6,})[-_ ]?\d*/i.test(base)) return "Untitled"; // camera default names
   const words = base
     .replace(/^\d+[-_ ]*/, "")
+    .replace(/[\s_-]+_?(?:img|dsc|dscn|dscf|pxl)?_?\d+$/i, "") // trailing counter or camera name (e.g. _DSC16510)
     .replace(/[-_]+/g, " ")
-    .replace(/\s+\d+$/, "")
+    .replace(/\s+/g, " ")
     .trim();
   return words ? words.charAt(0).toUpperCase() + words.slice(1) : "Untitled";
 }

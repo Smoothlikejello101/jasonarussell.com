@@ -47,9 +47,19 @@ else
   echo "In the Cloudflare dashboard: R2 → Manage API tokens → Create API token."
   echo "Permission: Object Read & Write. Scope it to the bucket '$BUCKET'."
   echo "Then copy the three values it shows you."
-  read -rp  "  Account ID (the part before .r2.cloudflarestorage.com): " ACCOUNT_ID
-  read -rp  "  Access Key ID: " ACCESS_KEY
-  read -rsp "  Secret Access Key (hidden): " SECRET_KEY; echo
+  echo "Paste with Ctrl+Shift+V (plain Ctrl+V doesn't paste in most Linux terminals)."
+  ask() {  # ask PROMPT EXPECTED_LEN HIDDEN -> sets REPLY_VAL
+    local v
+    while true; do
+      if [ "$3" = hidden ]; then read -rsp "  $1: " v; echo; else read -rp "  $1: " v; fi
+      v="$(printf '%s' "$v" | tr -d '[:space:]')"
+      if [ "${#v}" -eq "$2" ]; then REPLY_VAL="$v"; return; fi
+      echo "    That was ${#v} characters; expected $2. Try again."
+    done
+  }
+  ask "Account ID (32 characters, the part before .r2.cloudflarestorage.com)" 32 shown; ACCOUNT_ID="$REPLY_VAL"
+  ask "Access Key ID (32 characters)" 32 shown; ACCESS_KEY="$REPLY_VAL"
+  ask "Secret Access Key (64 characters, hidden)" 64 hidden; SECRET_KEY="$REPLY_VAL"
   # Older rclone (before 1.58) has no 'Cloudflare' provider; 'Other' works the same for R2.
   PROVIDER=Cloudflare
   RV=$(rclone version | head -1 | sed -E 's/.*v([0-9]+)\.([0-9]+).*/\1 \2/')
@@ -62,7 +72,9 @@ fi
 if rclone lsf "${REMOTE}:${BUCKET}" >/dev/null 2>&1; then
   echo "Connected to the '$BUCKET' bucket."
 else
-  echo "Couldn't reach the bucket. Check the token values, then run:  rclone config delete $REMOTE  and re-run this installer."
+  echo "Couldn't reach the bucket. The keys were probably mistyped or swapped."
+  echo "Removing the saved connection so you can re-run this installer with fresh values."
+  rclone config delete "$REMOTE" || true
   exit 1
 fi
 
@@ -96,3 +108,4 @@ COUNT=$(find "$WATCH_DIR" -maxdepth 1 -type f \( -iname '*.jpg' -o -iname '*.jpe
 echo "Photos already in the watch folder: $COUNT (they'll upload within a couple of minutes)."
 echo "Watch it work:   journalctl --user -u photo-sync -f"
 echo "What's uploaded: photo-sync --status"
+case ":$PATH:" in *":$HOME/.local/bin:"*) ;; *) echo "(Open a new terminal, or log out and back in, before the photo-sync command works by name.)";; esac
