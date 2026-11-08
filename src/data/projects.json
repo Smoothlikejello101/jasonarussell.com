@@ -4,11 +4,5 @@
     "url": "https://fullgrown.garden",
     "status": "In beta",
     "summary": "A garden planner that finds plants for your exact conditions and shows how your beds will look in five years."
-  },
-  {
-    "name": "Public land coordinate generator",
-    "url": "",
-    "status": "Personal tool",
-    "summary": "Picks random coordinates on public land within 200 miles of home, using PAD-US data, for finding new places to explore. Spots get checked in CalTopo before heading out."
   }
 ]
