@@ -1,5 +1,7 @@
 # Adding photographs
 
+**Easiest:** use `tools/photo-sync`. Export full-size from darktable into `~/Pictures/Photos/Export/Website`, and a background job resizes each one, strips GPS, and uploads it. The steps below are for manual uploads.
+
 ## 1. Set titles in darktable (optional but recommended)
 
 In the darkroom or lighttable, open the **metadata editor** module and fill in:
