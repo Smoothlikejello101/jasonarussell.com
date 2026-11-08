@@ -14,8 +14,8 @@ import { parseJpegHead } from "./jpeg.js";
 // The only sizes anyone can request. Adding a size = one more cached
 // transformation per photo (Cloudflare Images free tier: 5,000 unique/month).
 export const VARIANTS = {
-  thumb: { long: 720, quality: 80, mark: 120, inset: 12 },
-  full: { long: 1600, quality: 84, mark: 240, inset: 24 },
+  thumb: { long: 720, quality: 80, mark: 96, inset: 12 },
+  full: { long: 1600, quality: 84, mark: 200, inset: 24 },
 };
 
 const IMAGE_EXT = /\.(jpe?g)$/i;
