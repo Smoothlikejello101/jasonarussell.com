@@ -17,7 +17,7 @@ Personal site for Jason A. Russell: resume, photographs, FullGrown, and projects
 | Colors and fonts | `src/styles/global.css` |
 | Watermark | replace `public/watermark.png` (transparent PNG, ~800px wide) |
 | Photo sizes, watermark size/position | `VARIANTS` in `worker/index.js` |
-| Visitor stats | `analyticsToken` in `src/layouts/Base.astro` |
+| Visitor stats | Cloudflare dashboard → Web Analytics (Cloudflare injects the script automatically; nothing in the code) |
 
 Adding a new page: create `src/pages/whatever.astro` (copy `projects.astro` as a starting point). It appears at `/whatever/`.
 
@@ -34,7 +34,7 @@ See `docs/PHOTOS.md`. In short: export from darktable, upload the JPEG to the `j
 
    Every push to `main` then rebuilds and deploys automatically.
 3. **Domain.** Nothing to do by hand. The `routes` in `wrangler.jsonc` attach `jasonarussell.com` and `www.jasonarussell.com` on first deploy (www redirects to the bare domain).
-4. **Visitor stats.** Dashboard → Web Analytics → Add a site → copy the token into `analyticsToken` in `src/layouts/Base.astro`.
+4. **Visitor stats.** Enabled in the Cloudflare dashboard (Web Analytics); Cloudflare injects the script automatically.
 5. **Email.** In Proton: Settings → Domain names → Add domain → `jasonarussell.com`, then add the records Proton shows (verification TXT, MX, SPF, DKIM, DMARC) in Cloudflare DNS. Create the address `jason@jasonarussell.com`.
 
 ## Working locally (optional)
