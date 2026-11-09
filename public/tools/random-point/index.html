@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random Point Generator</title>
+<meta name="description" content="Get a truly random coordinate within any radius of a center you choose. Uniform sampling on the globe, map preview, and GPX export.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+  :root {
+    color-scheme: light;
+    --paper: #f3f2e9;
+    --paper-deep: #e9e8db;
+    --ink: #24291f;
+    --ink-soft: #5c6152;
+    --contour: #a4a08a;
+    --green: #3f6b45;
+    --green-dark: #33583a;
+    --water: #24647f;
+    --marker: #8a4a1f;
+    --line: #c9c6b2;
+    --error: #a03518;
+    --error-bg: #f9ece7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background:
+      repeating-radial-gradient(circle at 18% -8%, transparent 0 54px, rgba(164,160,138,0.16) 54px 55px),
+      var(--paper);
+    color: var(--ink);
+    font: 15px/1.5 'IBM Plex Sans', system-ui, sans-serif;
+    padding: 20px 16px 48px;
+  }
+  a { color: var(--water); }
+  .wrap { max-width: 1040px; margin: 0 auto; }
+  .back { display: inline-block; margin: 0 0 10px; font: 12px 'IBM Plex Mono', monospace; color: var(--ink-soft); text-decoration: none; }
+  .back:hover { color: var(--water); text-decoration: underline; }
+
+  /* Title block, styled after a quadrangle map collar */
+  .title-block {
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    padding: 14px 18px 12px;
+    display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
+  }
+  .eyebrow {
+    font: 500 11px/1.3 'IBM Plex Mono', monospace; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 4px;
+  }
+  h1 { font: 600 28px/1.05 'Zilla Slab', serif; margin: 0; }
+  .lede { margin: 6px 0 0; color: var(--ink-soft); max-width: 52ch; }
+  .collar {
+    font: 11px/1.6 'IBM Plex Mono', monospace; color: var(--ink-soft);
+    text-align: right; white-space: nowrap;
+  }
+  @media (max-width: 620px) { .collar { display: none; } }
+
+  .grid { display: grid; grid-template-columns: 340px 1fr; gap: 16px; margin-top: 16px; }
+  .stack { display: grid; gap: 16px; align-content: start; }
+  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--paper); border: 1.5px solid var(--ink); padding: 16px; }
+  .panel h2 {
+    font: 500 11px/1.3 'IBM Plex Mono', monospace; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-soft);
+    margin: 0 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+  }
+  .full { margin-top: 16px; }
+
+  label, .label {
+    display: block; font: 11.5px/1.3 'IBM Plex Mono', monospace;
+    color: var(--ink-soft); margin-bottom: 4px; letter-spacing: 0.04em;
+  }
+  input[type=text], input[type=search] {
+    width: 100%; padding: 8px 10px; border: 1.5px solid var(--ink); border-radius: 0;
+    background: #fff; color: var(--ink); font: 14px 'IBM Plex Mono', monospace;
+    -webkit-appearance: none; appearance: none;
+  }
+  input.bad { border-color: var(--error); background: var(--error-bg); }
+  .field { margin-bottom: 10px; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; min-width: 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .or {
+    display: flex; align-items: center; gap: 10px; margin: 12px 0;
+    font: 11px 'IBM Plex Mono', monospace; color: var(--ink-soft); letter-spacing: 0.1em;
+  }
+  .or::before, .or::after { content: ""; flex: 1; border-top: 1px dashed var(--line); }
+
+  button { font: inherit; cursor: pointer; border-radius: 0; }
+  button:focus-visible, a:focus-visible, input:focus-visible {
+    outline: 2px solid var(--water); outline-offset: 2px;
+  }
+  .btn-sec {
+    padding: 8px 12px; border: 1.5px solid var(--ink); background: var(--paper);
+    color: var(--ink); font-size: 13.5px;
+  }
+  .btn-sec:hover { background: var(--paper-deep); }
+  .btn-sec:disabled { color: var(--contour); border-color: var(--contour); cursor: default; }
+  .wide { width: 100%; }
+  .btn-primary {
+    width: 100%; margin-top: 14px; padding: 12px;
+    font: 600 17px 'Zilla Slab', serif; letter-spacing: 0.02em;
+    background: var(--green); color: #fff; border: 1.5px solid var(--green);
+  }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-primary:disabled { background: var(--contour); border-color: var(--contour); cursor: not-allowed; }
+  .textbtn {
+    background: none; border: none; padding: 2px 0; color: var(--water);
+    text-decoration: underline; font-size: 13px;
+  }
+  .hint { font-size: 12.5px; color: var(--ink-soft); margin: 8px 0 0; line-height: 1.45; }
+
+  .radius-row { display: flex; gap: 8px; align-items: flex-end; }
+  .radius-row .field { flex: 1; margin-bottom: 0; }
+  .units { display: flex; border: 1.5px solid var(--ink); }
+  .units button {
+    font: 12px 'IBM Plex Mono', monospace; padding: 9px 11px;
+    background: var(--paper); border: none; color: var(--ink);
+  }
+  .units button[aria-pressed=true] { background: var(--ink); color: var(--paper); }
+
+  .status { min-height: 1.4em; margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
+  .status.error { color: var(--error); }
+
+  #map { height: 380px; border: 1px solid var(--line); background: var(--paper-deep); }
+  @media (max-width: 820px) { #map { height: 300px; } }
+  .leaflet-container { font-family: 'IBM Plex Sans', system-ui, sans-serif; }
+  .pin-center span {
+    display: block; width: 12px; height: 12px; margin: 1px;
+    background: var(--ink); transform: rotate(45deg); border: 1.5px solid var(--paper);
+  }
+  .popbtn {
+    padding: 6px 10px; border: 1.5px solid var(--green); background: var(--green);
+    color: #fff; font-size: 13px;
+  }
+
+  .coord { font: 500 21px/1.3 'IBM Plex Mono', monospace; word-break: break-all; }
+  .meta { font: 12px/1.5 'IBM Plex Mono', monospace; color: var(--ink-soft); margin-top: 2px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    font-size: 13px; padding: 6px 10px; border: 1.5px solid var(--ink);
+    color: var(--ink); background: var(--paper); text-decoration: none; display: inline-block;
+  }
+  .chip:hover { background: var(--paper-deep); }
+  a.chip { color: var(--water); border-color: var(--water); }
+  a.chip:hover { background: #e3edf1; }
+  .empty { color: var(--ink-soft); margin: 0; }
+
+  #log { list-style: none; margin: 0; padding: 0; }
+  #log li {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px;
+    padding: 9px 0; border-bottom: 1px dashed var(--line);
+  }
+  #log li:last-child { border-bottom: none; }
+  .lcoord { font: 13px 'IBM Plex Mono', monospace; }
+  .lmeta { font: 11.5px 'IBM Plex Mono', monospace; color: var(--ink-soft); }
+  .spacer { flex: 1; }
+  #log .chip { padding: 4px 8px; font-size: 12px; }
+
+  .notice ul { margin: 0; padding-left: 18px; }
+  .notice li { margin-bottom: 6px; }
+  details summary {
+    cursor: pointer; font: 600 16px 'Zilla Slab', serif; list-style-position: outside;
+  }
+  details p { margin: 10px 0 0; max-width: 70ch; }
+  code { font: 13px 'IBM Plex Mono', monospace; background: var(--paper-deep); padding: 1px 4px; }
+
+  footer {
+    margin-top: 20px; font: 11.5px/1.6 'IBM Plex Mono', monospace;
+    color: var(--ink-soft); text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="back" href="/projects/">← Projects · jasonarussell.com</a>
+
+  <header class="title-block">
+    <div>
+      <p class="eyebrow">Uniform sampling on the globe</p>
+      <h1>Random Point Generator</h1>
+      <p class="lede">Choose a center and a radius, and get a genuinely random coordinate inside the circle. A good way to find somewhere you'd never have picked yourself.</p>
+    </div>
+    <div class="collar" aria-hidden="true">
+      <div id="collarCenter">CENTER —</div>
+      <div id="collarRadius">RADIUS —</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Controls -->
+    <section class="panel" aria-labelledby="h-center">
+      <h2 id="h-center">Center &amp; radius</h2>
+
+      <form id="searchForm" autocomplete="off">
+        <label for="q">Find a place or paste coordinates</label>
+        <div class="row">
+          <input id="q" type="search" placeholder="Town, park, or 35.15, -92.40">
+          <button type="submit" class="btn-sec" id="searchBtn">Search</button>
+        </div>
+      </form>
+
+      <div class="or">OR</div>
+      <button type="button" class="btn-sec wide" id="locBtn">Use my location</button>
+      <p class="hint">You can also tap anywhere on the map to set the center.</p>
+
+      <div class="two" style="margin-top:14px">
+        <div class="field">
+          <label for="lat">Latitude</label>
+          <input id="lat" type="text" spellcheck="false">
+        </div>
+        <div class="field">
+          <label for="lon">Longitude</label>
+          <input id="lon" type="text" spellcheck="false">
+        </div>
+      </div>
+
+      <div class="radius-row">
+        <div class="field">
+          <label for="radius">Radius</label>
+          <input id="radius" type="text" inputmode="decimal" spellcheck="false">
+        </div>
+        <div class="units" role="group" aria-label="Distance units">
+          <button type="button" data-unit="mi" aria-pressed="true">mi</button>
+          <button type="button" data-unit="km" aria-pressed="false">km</button>
+        </div>
+      </div>
+
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+
+      <button type="button" class="btn-primary" id="drawBtn">Draw a random point</button>
+      <p class="hint">
+        Your center and draws are kept only in this browser.
+        <button type="button" class="textbtn" id="shareBtn">Copy a link to these settings</button>
+      </p>
+    </section>
+
+    <!-- Map + result -->
+    <div class="stack">
+      <section class="panel" aria-labelledby="h-map">
+        <h2 id="h-map"><span>Map</span><span id="mapCount"></span></h2>
+        <div id="map" role="application" aria-label="Map showing the search circle and drawn points"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-result">
+        <h2 id="h-result">Latest point</h2>
+        <div id="result" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="panel full" id="logPanel" aria-labelledby="h-log" hidden>
+    <h2 id="h-log"><span id="logTitle">Draw log</span><button type="button" class="textbtn" id="clearBtn">Clear</button></h2>
+    <ol id="log"></ol>
+  </section>
+
+  <section class="panel full notice" aria-labelledby="h-before">
+    <h2 id="h-before">Before you head out</h2>
+    <ul>
+      <li>A random point is only a coordinate. It can land on private property, in water, on a highway, or somewhere that's unsafe to reach.</li>
+      <li>Check land ownership and access first. In the US, <a href="https://caltopo.com" target="_blank" rel="noopener">CalTopo</a>'s land management layer, <a href="https://www.onxmaps.com" target="_blank" rel="noopener">onX</a>, or the USGS PAD-US database show public land; elsewhere, use local land records.</li>
+      <li>Respect closures, posted signs, and hunting seasons. Get permission before entering private land, and redraw if the point isn't reachable.</li>
+      <li>These coordinates aren't navigation-grade. Carry a real map and let someone know where you're going.</li>
+    </ul>
+  </section>
+
+  <section class="panel full">
+    <details>
+      <summary>How the sampling works</summary>
+      <p>Picking a random direction and a random distance independently piles points up near the center, because the inner rings of a circle hold far less area than the outer ones. This tool instead chooses the distance so that every patch of ground inside the circle is equally likely.</p>
+      <p>On a sphere, the area within angular distance <i>d</i> of the center is proportional to sin²(<i>d</i>/2). So with <i>u</i> uniform on [0, 1) and maximum angular radius <i>D</i>, the tool sets <code>sin(d/2) = √u · sin(D/2)</code>. That's exact at any radius; for small circles it reduces to the familiar <code>d = D·√u</code>. The direction is uniform from 0° to 360°, and the point is placed along a great-circle path from the center. Randomness comes from your browser's cryptographic generator.</p>
+      <p>The Earth is modeled as a sphere (radius 3,958.76 mi), which differs from the true ellipsoid by well under 1% — far smaller than any practical concern here.</p>
+    </details>
+  </section>
+
+  <footer>
+    Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors ·
+    Place search by <a href="https://nominatim.org" target="_blank" rel="noopener">Nominatim</a> ·
+    Built by <a href="/">Jason A. Russell</a>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+(() => {
+  'use strict';
+
+  /* =========================================================
+     CONFIG — the one place to change defaults and limits.
+     ========================================================= */
+  const CFG = {
+    EARTH_RADIUS_MI: 3958.7613,
+    KM_PER_MI: 1.609344,
+    DECIMALS: 5,               // ~1 m precision
+    MAX_RADIUS_MI: 3000,       // keeps circles away from pole/antimeridian edge cases
+    MAX_LOG: 25,
+    STORAGE_KEY: 'rpg:v2',
+    CIRCLE_SEGMENTS: 128,
+    // Neutral default: geographic center of the contiguous US.
+    DEFAULTS: { lat: 39.8283, lon: -98.5795, radius: 100, unit: 'mi' },
+    TILES: {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    },
+    GEOCODER: 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=',
+  };
+
+  /* =========================================================
+     GEO MATH — pure functions, no DOM.
+     ========================================================= */
+  const toRad = d => d * Math.PI / 180;
+  const toDeg = r => r * 180 / Math.PI;
+  const normLon = lon => ((((lon + 180) % 360) + 360) % 360) - 180;
+
+  // Great-circle destination from (lat, lon) along a bearing for distMi miles.
+  function destination(lat, lon, bearingDeg, distMi) {
+    const d = distMi / CFG.EARTH_RADIUS_MI, t = toRad(bearingDeg);
+    const p1 = toRad(lat), l1 = toRad(lon);
+    const p2 = Math.asin(Math.sin(p1) * Math.cos(d) + Math.cos(p1) * Math.sin(d) * Math.cos(t));
+    const l2 = l1 + Math.atan2(Math.sin(t) * Math.sin(d) * Math.cos(p1),
+                               Math.cos(d) - Math.sin(p1) * Math.sin(p2));
+    return { lat: toDeg(p2), lon: normLon(toDeg(l2)) };
+  }
+
+  // Cryptographic uniform [0, 1), with a fallback for very old browsers.
+  const rngBuf = new Uint32Array(1);
+  const rng = (window.crypto && crypto.getRandomValues)
+    ? () => (crypto.getRandomValues(rngBuf), rngBuf[0] / 4294967296)
+    : Math.random;
+
+  // Uniform-by-area random point in a spherical cap (see "How the sampling works").
+  function randomPoint(lat, lon, radiusMi, rand = rng) {
+    const D = Math.min(radiusMi / CFG.EARTH_RADIUS_MI, Math.PI);
+    const d = 2 * Math.asin(Math.sqrt(rand()) * Math.sin(D / 2));
+    const bearingDeg = rand() * 360;
+    const distMi = d * CFG.EARTH_RADIUS_MI;
+    return { ...destination(lat, lon, bearingDeg, distMi), distMi, bearingDeg };
+  }
+
+  /* =========================================================
+     FORMATTING, LINKS, EXPORT
+     ========================================================= */
+  const fmt = n => n.toFixed(CFG.DECIMALS);
+  const fmtPair = (lat, lon) => `${fmt(lat)}, ${fmt(lon)}`;
+  const COMPASS = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  const compass = deg => COMPASS[Math.round(deg / 22.5) % 16];
+  const isAndroid = /Android/i.test(navigator.userAgent);
+
+  const links = (lat, lon) => ({
+    google: `https://www.google.com/maps/search/?api=1&query=${fmt(lat)}%2C${fmt(lon)}`,
+    apple: `https://maps.apple.com/?ll=${fmt(lat)},${fmt(lon)}&q=Random%20point`,
+    caltopo: `https://caltopo.com/map.html#ll=${fmt(lat)},${fmt(lon)}&z=13&b=t`,
+    geo: `geo:${fmt(lat)},${fmt(lon)}?q=${fmt(lat)},${fmt(lon)}`,
+  });
+
+  function gpx(p) {
+    const desc = `${p.distMi.toFixed(1)} mi ${compass(p.bearingDeg)} of ${fmtPair(p.cLat, p.cLon)}; drawn ${new Date(p.at).toISOString()}`;
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Random Point Generator" xmlns="http://www.topografix.com/GPX/1/1">
+  <wpt lat="${p.lat.toFixed(6)}" lon="${p.lon.toFixed(6)}">
+    <name>Random point ${p.lat.toFixed(4)}, ${p.lon.toFixed(4)}</name>
+    <desc>${desc}</desc>
+  </wpt>
+</gpx>
+`;
+  }
+
+  function download(filename, text, mime) {
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: filename });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); return true; }
+    catch {
+      const ta = Object.assign(document.createElement('textarea'), { value: text });
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand('copy'); } catch {}
+      ta.remove(); return ok;
+    }
+  }
+
+  /* =========================================================
+     STATE + PERSISTENCE (localStorage only; nothing leaves the browser)
+     ========================================================= */
+  let state = { ...CFG.DEFAULTS };
+  let log = [];
+
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(CFG.STORAGE_KEY) || 'null');
+      if (s && s.settings && validSettings(s.settings)) state = { ...state, ...s.settings };
+      if (s && Array.isArray(s.log)) log = s.log.slice(0, CFG.MAX_LOG);
+    } catch {}
+    // Settings in the URL (?lat=&lon=&r=&u=) take priority, for shared links.
+    const q = new URLSearchParams(location.search);
+    const fromUrl = {
+      lat: parseFloat(q.get('lat')), lon: parseFloat(q.get('lon')),
+      radius: parseFloat(q.get('r')), unit: q.get('u') === 'km' ? 'km' : 'mi',
+    };
+    if (validSettings(fromUrl)) state = fromUrl;
+  }
+  function save() {
+    try { localStorage.setItem(CFG.STORAGE_KEY, JSON.stringify({ settings: state, log })); } catch {}
+  }
+
+  const radiusToMi = (r, unit) => unit === 'km' ? r / CFG.KM_PER_MI : r;
+  const maxRadius = unit => unit === 'km' ? Math.round(CFG.MAX_RADIUS_MI * CFG.KM_PER_MI) : CFG.MAX_RADIUS_MI;
+  const validLat = v => Number.isFinite(v) && v >= -90 && v <= 90;
+  const validLon = v => Number.isFinite(v) && v >= -180 && v <= 180;
+  const validRadius = (r, unit) => Number.isFinite(r) && r > 0 && r <= maxRadius(unit);
+  function validSettings(s) {
+    return s && validLat(s.lat) && validLon(s.lon) && validRadius(s.radius, s.unit) && (s.unit === 'mi' || s.unit === 'km');
+  }
+
+  /* =========================================================
+     DOM
+     ========================================================= */
+  const $ = id => document.getElementById(id);
+  const el = {
+    q: $('q'), searchForm: $('searchForm'), searchBtn: $('searchBtn'), locBtn: $('locBtn'),
+    lat: $('lat'), lon: $('lon'), radius: $('radius'), status: $('status'),
+    drawBtn: $('drawBtn'), shareBtn: $('shareBtn'), result: $('result'),
+    logPanel: $('logPanel'), log: $('log'), logTitle: $('logTitle'), clearBtn: $('clearBtn'),
+    mapCount: $('mapCount'), collarCenter: $('collarCenter'), collarRadius: $('collarRadius'),
+    units: document.querySelectorAll('.units button'),
+  };
+
+  function setStatus(msg = '', isError = false) {
+    el.status.textContent = msg;
+    el.status.classList.toggle('error', isError);
+  }
+
+  function syncInputs() {
+    el.lat.value = fmt(state.lat);
+    el.lon.value = fmt(state.lon);
+    el.radius.value = String(state.radius);
+    el.units.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.unit === state.unit)));
+    el.collarCenter.textContent = `CENTER ${state.lat.toFixed(4)}, ${state.lon.toFixed(4)}`;
+    el.collarRadius.textContent = `RADIUS ${state.radius} ${state.unit.toUpperCase()}`;
+    validateInputs();
+  }
+
+  function readInputs() {
+    return {
+      lat: parseFloat(el.lat.value), lon: parseFloat(el.lon.value),
+      radius: parseFloat(el.radius.value), unit: state.unit,
+    };
+  }
+
+  function validateInputs() {
+    const v = readInputs();
+    const okLat = validLat(v.lat), okLon = validLon(v.lon), okR = validRadius(v.radius, v.unit);
+    el.lat.classList.toggle('bad', !okLat);
+    el.lon.classList.toggle('bad', !okLon);
+    el.radius.classList.toggle('bad', !okR);
+    el.drawBtn.disabled = !(okLat && okLon && okR);
+    if (!okLat) setStatus('Latitude must be between −90 and 90.', true);
+    else if (!okLon) setStatus('Longitude must be between −180 and 180.', true);
+    else if (!okR) setStatus(`Radius must be greater than 0 and at most ${maxRadius(v.unit).toLocaleString()} ${v.unit}.`, true);
+    else if (el.status.classList.contains('error')) setStatus('');
+    return okLat && okLon && okR ? v : null;
+  }
+
+  // Commit typed values into state. Returns true if anything valid was committed.
+  function commitInputs() {
+    const v = validateInputs();
+    if (!v) return false;
+    const centerMoved = v.lat !== state.lat || v.lon !== state.lon;
+    const radiusChanged = v.radius !== state.radius;
+    state = { ...state, ...v };
+    save(); syncInputs();
+    if (centerMoved || radiusChanged) updateMap(true);
+    return true;
+  }
+
+  function setCenter(lat, lon, msg) {
+    state.lat = +lat.toFixed(CFG.DECIMALS);
+    state.lon = +normLon(lon).toFixed(CFG.DECIMALS);
+    save(); syncInputs(); updateMap(true); renderResult();
+    setStatus(msg || '');
+  }
+
+  /* =========================================================
+     MAP
+     ========================================================= */
+  const map = L.map('map', { zoomControl: true });
+  L.tileLayer(CFG.TILES.url, { maxZoom: CFG.TILES.maxZoom, attribution: CFG.TILES.attribution }).addTo(map);
+
+  const circle = L.polygon([], {
+    color: '#3f6b45', weight: 2, fillColor: '#3f6b45', fillOpacity: 0.08, interactive: false,
+  }).addTo(map);
+  const centerMarker = L.marker([0, 0], {
+    icon: L.divIcon({ className: 'pin-center', html: '<span></span>', iconSize: [16, 16] }),
+    keyboard: false, interactive: false,
+  }).addTo(map);
+  const drawsLayer = L.layerGroup().addTo(map);
+  const latestIcon = L.divIcon({
+    className: '', iconSize: [24, 24], iconAnchor: [12, 12],
+    html: '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">' +
+          '<line x1="2" y1="12" x2="22" y2="12" stroke="#8a4a1f" stroke-width="2"/>' +
+          '<line x1="12" y1="2" x2="12" y2="22" stroke="#8a4a1f" stroke-width="2"/>' +
+          '<circle cx="12" cy="12" r="5" fill="#8a4a1f" stroke="#f3f2e9" stroke-width="1.5"/></svg>',
+  });
+
+  // Keep longitudes continuous around the center so circles don't tear at ±180°.
+  const unwrap = lon => state.lon + normLon(lon - state.lon);
+  const sameCenter = p => Math.abs(p.cLat - state.lat) < 1e-6 && Math.abs(p.cLon - state.lon) < 1e-6;
+
+  function updateMap(fit) {
+    const rMi = radiusToMi(state.radius, state.unit);
+    const ring = [];
+    for (let i = 0; i < CFG.CIRCLE_SEGMENTS; i++) {
+      const p = destination(state.lat, state.lon, (i / CFG.CIRCLE_SEGMENTS) * 360, rMi);
+      ring.push([p.lat, unwrap(p.lon)]);
+    }
+    circle.setLatLngs(ring);
+    centerMarker.setLatLng([state.lat, state.lon]);
+
+    drawsLayer.clearLayers();
+    const here = log.filter(sameCenter);
+    here.forEach((p, i) => {
+      const ll = [p.lat, unwrap(p.lon)];
+      if (i === 0) L.marker(ll, { icon: latestIcon, interactive: false, zIndexOffset: 1000 }).addTo(drawsLayer);
+      else L.circleMarker(ll, { radius: 4, color: '#24647f', weight: 1, fillColor: '#24647f', fillOpacity: 0.55, interactive: false }).addTo(drawsLayer);
+    });
+    el.mapCount.textContent = here.length ? `${here.length} draw${here.length === 1 ? '' : 's'} here` : '';
+
+    if (fit) map.fitBounds(circle.getBounds(), { padding: [18, 18] });
+  }
+
+  // Tap/click → confirm via popup, so panning on a phone can't move the center by accident.
+  map.on('click', e => {
+    const btn = Object.assign(document.createElement('button'), {
+      type: 'button', className: 'popbtn', textContent: 'Set center here',
+    });
+    btn.addEventListener('click', () => {
+      map.closePopup();
+      setCenter(e.latlng.lat, e.latlng.lng, 'Center set from the map.');
+    });
+    L.popup({ closeButton: false }).setLatLng(e.latlng).setContent(btn).openOn(map);
+  });
+
+  /* =========================================================
+     RENDERING
+     ========================================================= */
+  const distLabel = mi => state.unit === 'km'
+    ? `${(mi * CFG.KM_PER_MI).toFixed(1)} km` : `${mi.toFixed(1)} mi`;
+
+  function renderResult() {
+    const p = log[0];
+    if (!p || !sameCenter(p)) {
+      el.result.innerHTML = '<p class="empty">No point yet. Set a center and radius, then draw.</p>';
+      return;
+    }
+    const L_ = links(p.lat, p.lon);
+    el.result.innerHTML = `
+      <div class="coord">${fmtPair(p.lat, p.lon)}</div>
+      <div class="meta">${distLabel(p.distMi)} ${compass(p.bearingDeg)} of center · bearing ${Math.round(p.bearingDeg)}°</div>
+      <div class="actions">
+        <button type="button" class="chip" data-act="copy" data-i="0">Copy coordinates</button>
+        <a class="chip" href="${L_.google}" target="_blank" rel="noopener">Google Maps ↗</a>
+        <a class="chip" href="${L_.apple}" target="_blank" rel="noopener">Apple Maps ↗</a>
+        <a class="chip" href="${L_.caltopo}" target="_blank" rel="noopener">CalTopo ↗</a>
+        ${isAndroid ? `<a class="chip" href="${L_.geo}">Open in map app ↗</a>` : ''}
+        <button type="button" class="chip" data-act="gpx" data-i="0">Download GPX</button>
+      </div>
+      <p class="hint">GPX works with Avenza, Gaia GPS, onX, CalTopo, and most handheld GPS units.</p>`;
+  }
+
+  function renderLog() {
+    el.logPanel.hidden = log.length === 0;
+    el.logTitle.textContent = `Draw log · ${log.length}`;
+    el.log.innerHTML = log.map((p, i) => `
+      <li>
+        <span class="lcoord">${fmtPair(p.lat, p.lon)}</span>
+        <span class="lmeta">${distLabel(p.distMi)} ${compass(p.bearingDeg)}${sameCenter(p) ? '' : ' · other center'}</span>
+        <span class="spacer"></span>
+        <a class="chip" href="${links(p.lat, p.lon).google}" target="_blank" rel="noopener">Map</a>
+        <button type="button" class="chip" data-act="gpx" data-i="${i}">GPX</button>
+        <button type="button" class="chip" data-act="copy" data-i="${i}">Copy</button>
+        <button type="button" class="chip" data-act="center" data-i="${i}">Use as center</button>
+      </li>`).join('');
+  }
+
+  /* =========================================================
+     ACTIONS
+     ========================================================= */
+  function draw() {
+    if (!commitInputs()) return;
+    const rMi = radiusToMi(state.radius, state.unit);
+    const p = randomPoint(state.lat, state.lon, rMi);
+    log.unshift({ ...p, cLat: state.lat, cLon: state.lon, rMi, at: Date.now() });
+    log = log.slice(0, CFG.MAX_LOG);
+    save(); renderResult(); renderLog(); updateMap(false);
+    setStatus('');
+  }
+
+  async function onAction(e) {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const p = log[+btn.dataset.i];
+    if (!p) return;
+    if (btn.dataset.act === 'copy') {
+      const ok = await copyText(fmtPair(p.lat, p.lon));
+      const old = btn.textContent;
+      btn.textContent = ok ? 'Copied ✓' : 'Copy failed';
+      setTimeout(() => { btn.textContent = old; }, 1500);
+    } else if (btn.dataset.act === 'gpx') {
+      download(`random-point-${p.lat.toFixed(4)}_${p.lon.toFixed(4)}.gpx`, gpx(p), 'application/gpx+xml');
+    } else if (btn.dataset.act === 'center') {
+      setCenter(p.lat, p.lon, 'Center moved to that point.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  function parsePair(str) {
+    const m = str.match(/^\s*(-?\d+(?:\.\d+)?)\s*[,\s]\s*(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) return null;
+    const lat = parseFloat(m[1]), lon = parseFloat(m[2]);
+    return validLat(lat) && validLon(lon) ? { lat, lon } : null;
+  }
+
+  async function search(e) {
+    e.preventDefault();
+    const q = el.q.value.trim();
+    if (!q) { setStatus('Type a place name or a "lat, lon" pair.', true); return; }
+    const pair = parsePair(q);
+    if (pair) { setCenter(pair.lat, pair.lon, 'Center set from coordinates.'); return; }
+
+    el.searchBtn.disabled = true;
+    setStatus('Searching…');
+    try {
+      const res = await fetch(CFG.GEOCODER + encodeURIComponent(q), { headers: { 'Accept-Language': navigator.language || 'en' } });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      if (!data.length) { setStatus(`No match for "${q}". Try a nearby town or paste coordinates.`, true); return; }
+      setCenter(parseFloat(data[0].lat), parseFloat(data[0].lon), `Centered on ${data[0].display_name}.`);
+    } catch {
+      setStatus('Place search is unavailable right now. Paste coordinates or tap the map instead.', true);
+    } finally {
+      el.searchBtn.disabled = false;
+    }
+  }
+
+  function useMyLocation() {
+    if (!navigator.geolocation) { setStatus('This browser can\'t share its location. Search or tap the map instead.', true); return; }
+    el.locBtn.disabled = true;
+    setStatus('Finding your location…');
+    navigator.geolocation.getCurrentPosition(
+      pos => { el.locBtn.disabled = false; setCenter(pos.coords.latitude, pos.coords.longitude, 'Center set to your location.'); },
+      err => {
+        el.locBtn.disabled = false;
+        setStatus(err.code === 1
+          ? 'Location permission was denied. Search for a place or tap the map instead.'
+          : 'Couldn\'t get your location. Search for a place or tap the map instead.', true);
+      },
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }
+    );
+  }
+
+  function setUnit(unit) {
+    if (unit === state.unit) return;
+    const r = parseFloat(el.radius.value);
+    const converted = Number.isFinite(r)
+      ? Math.round((unit === 'km' ? r * CFG.KM_PER_MI : r / CFG.KM_PER_MI) * 10) / 10
+      : state.radius;
+    state.unit = unit;
+    el.radius.value = String(converted);
+    if (validRadius(converted, unit)) state.radius = converted;
+    save(); syncInputs(); updateMap(false); renderResult(); renderLog();
+  }
+
+  async function shareSettings() {
+    if (!commitInputs()) return;
+    const url = new URL(location.href.split('?')[0].split('#')[0]);
+    url.search = new URLSearchParams({ lat: fmt(state.lat), lon: fmt(state.lon), r: state.radius, u: state.unit }).toString();
+    const ok = await copyText(url.toString());
+    setStatus(ok ? 'Link copied. It includes your center coordinates, so share it accordingly.' : 'Couldn\'t copy the link.', !ok);
+  }
+
+  /* =========================================================
+     WIRING
+     ========================================================= */
+  el.searchForm.addEventListener('submit', search);
+  el.locBtn.addEventListener('click', useMyLocation);
+  el.drawBtn.addEventListener('click', draw);
+  el.shareBtn.addEventListener('click', shareSettings);
+  el.clearBtn.addEventListener('click', () => { log = []; save(); renderLog(); renderResult(); updateMap(false); });
+  el.units.forEach(b => b.addEventListener('click', () => setUnit(b.dataset.unit)));
+  [el.lat, el.lon, el.radius].forEach(inp => {
+    inp.addEventListener('input', validateInputs);
+    inp.addEventListener('change', commitInputs);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); commitInputs(); } });
+  });
+  el.result.addEventListener('click', onAction);
+  el.log.addEventListener('click', onAction);
+
+  load();
+  syncInputs();
+  updateMap(true);
+  renderResult();
+  renderLog();
+})();
+</script>
+</body>
+</html>

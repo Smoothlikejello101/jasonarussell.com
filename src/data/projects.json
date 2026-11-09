@@ -4,5 +4,11 @@
     "url": "https://fullgrown.garden",
     "status": "In beta",
     "summary": "A garden planner that finds plants for your exact conditions and shows how your beds will look in five years."
+  },
+  {
+    "name": "Random Point Generator",
+    "url": "/tools/random-point/",
+    "status": "Free to use",
+    "summary": "Picks a truly random spot within any distance of a place you choose — a way to find somewhere to explore that you'd never have picked yourself."
   }
 ]
