@@ -10,5 +10,11 @@
     "url": "/tools/random-point/",
     "status": "Free to use",
     "summary": "Picks a truly random spot within any distance of a place you choose — a way to find somewhere to explore that you'd never have picked yourself."
+  },
+  {
+    "name": "Holiday Gap Finder",
+    "url": "/tools/holiday-gap/",
+    "status": "Free to use",
+    "summary": "Finds the three longest stretches of your year without a holiday, counting the ones you celebrate plus birthdays and family traditions, and the middle date of each: the best spots to add something new."
   }
 ]

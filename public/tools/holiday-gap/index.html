@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holiday Gap Finder</title>
+<meta name="description" content="Pick the holidays you celebrate, add your own, and find the three longest stretches without one, with the middle date of each.">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: friendly, practical planning tool; calm, confident.
+IDEA: a perpetual "year wheel" calendar dial, holidays printed as red-letter days.
+PICTURE: the year as a ring — red ticks for holidays, gold arcs for the three widest gaps, numbered pins at each midpoint.
+COLOUR and TYPE: calendar red header field, white ground, ink text, marigold for gaps; Barlow Condensed numerals + Barlow body.
+LAYOUT: red band with title + year; wheel and the three options side by side; checklist and custom dates below.
+*/
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#16141a);--ink:light-dark(#1e1b22,#f1ede6);--mute:light-dark(#67626c,#a8a3ad);
+--line:light-dark(#e6e1dc,#2e2a33);--card:light-dark(#f7f4f0,#1f1c24);--red:light-dark(#c8102e,#ff5d70);
+--head:light-dark(#c8102e,#7a1326);--gold:light-dark(#e39b00,#f4b740);--track:light-dark(#efebe6,#26222b)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Barlow,system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.in{max-width:1240px;margin:0 auto}
+h1,h2,.big,.mid{font-family:"Barlow Condensed",Barlow,sans-serif}
+.top{background:var(--head);color:#fff;padding-block:clamp(22px,3vw,40px)}
+.top .in{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px 32px}
+h1{font-size:clamp(34px,5vw,52px);line-height:1.05;margin:0;font-weight:700;text-wrap:balance}
+.top p{margin:6px 0 0;max-width:60ch;opacity:.92}
+.back{display:inline-block;margin:0 0 10px;color:#fff;opacity:.85;font-size:14px;text-decoration:none}
+.back:hover{opacity:1;text-decoration:underline}
+footer{text-align:center;color:var(--mute);font-size:14px;padding:0 16px 32px}
+footer a{color:inherit}
+.yr{display:flex;align-items:center;gap:10px;font-weight:600}
+select,input{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:8px;min-height:44px;padding:0 10px}
+.top select{border-color:transparent;font-weight:600}
+button{font:inherit;font-weight:600;min-height:44px;padding:0 16px;border-radius:8px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer}
+button.solid{background:var(--ink);color:var(--bg)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center}
+.wheel{position:relative;width:100%;max-width:500px;aspect-ratio:1;margin:0 auto}
+.wheel svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.hub{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;padding:22%}
+.hub .big{font-size:clamp(44px,9vw,76px);line-height:1;font-weight:700}
+.hub small{color:var(--mute);font-size:14px;line-height:1.3}
+.track{fill:none;stroke:var(--track)}
+.div{stroke:var(--bg);stroke-width:2}
+.mlab{fill:var(--mute);font:600 12px Barlow,sans-serif}
+.gap{fill:var(--gold);opacity:.45;transition:opacity .25s}.gap.r2{opacity:.3}.gap.sel{opacity:1}
+.pg{cursor:pointer}.pin.sel{stroke:var(--gold);stroke-width:3}.pintx{pointer-events:none}
+.tick{stroke:var(--red);stroke-width:3;stroke-linecap:round}
+.pin{fill:var(--ink);stroke:var(--bg);stroke-width:2}
+.pintx{fill:var(--bg);font:700 13px Barlow,sans-serif}
+.opts{display:grid;gap:14px}
+.opts h2{font-size:28px;line-height:1.1;margin:0 0 4px}
+.opt{display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;padding:16px 18px;background:var(--card);border-radius:12px;border:2px solid transparent;transition:border-color .2s;cursor:pointer;min-height:190px}
+.opt.sel{border-color:var(--gold)}
+@media(hover:hover){.opt[data-r]:not(.sel):hover{border-color:var(--line)}}
+.opt.ghost{cursor:default;background:transparent;border:2px dashed var(--line);color:var(--mute);align-items:center}
+.ghost .num{background:var(--line);color:var(--mute)}
+.ghost p{margin:0}
+.num{width:36px;height:36px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:700}
+.opt p{margin:0}
+.span{color:var(--mute);font-size:15px}
+.span b{color:var(--ink);font-weight:600}
+.mlbl{font-size:13px;color:var(--mute);margin-top:8px!important}
+.mid{font-size:clamp(28px,4vw,36px);line-height:1.05;font-weight:700;white-space:nowrap}
+.note{font-size:14px;color:var(--mute);margin:4px 0 10px!important}
+.nw{white-space:nowrap}
+.empty{color:var(--mute);padding:20px;border:1.5px dashed var(--line);border-radius:12px}
+.pick{border-top:1px solid var(--line)}
+.cols{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:clamp(24px,4vw,56px)}
+.cols h2{font-size:28px;margin:0 0 6px;line-height:1.1}
+.bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.bar button{min-height:38px;font-size:15px;padding:0 12px;border-width:1px}
+fieldset{border:0;padding:0;margin:0 0 20px}
+legend{font-weight:600;color:var(--mute);font-size:14px;padding:0;margin-bottom:6px}
+.hl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px}
+.row{display:flex;align-items:center;gap:10px;min-height:44px;border-bottom:1px solid var(--line);cursor:pointer}
+.row input{width:20px;height:20px;min-height:0;accent-color:var(--red);flex:none}
+.row span{flex:1}
+.row time{color:var(--mute);font-size:14px;white-space:nowrap;font-variant-numeric:tabular-nums}
+form.add{display:grid;grid-template-columns:minmax(0,1fr) auto 76px;gap:8px;margin:12px 0}
+form.add button{grid-column:1/-1}
+.cust{list-style:none;margin:0;padding:0}
+.cust li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:6px 0}
+.cust input{flex:1;border-color:transparent;background:transparent;padding:0 6px}
+.cust input:hover,.cust input:focus{border-color:var(--line)}
+.cust time{color:var(--mute);font-size:14px;white-space:nowrap}
+.cust button{min-height:40px;padding:0 12px;border:0;color:var(--mute)}
+.fine{color:var(--mute);font-size:14px;margin-top:24px;max-width:70ch}
+@media(max-width:820px){.main,.cols{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:520px){.hl{grid-template-columns:minmax(0,1fr)}.mid{white-space:normal}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="band top"><div class="in">
+  <div>
+    <a class="back" href="/projects/">← Projects · jasonarussell.com</a>
+    <h1>Find room for a new holiday</h1>
+    <p>Tick the holidays you celebrate and add your own. The wheel finds the three longest stretches without one and points to the middle of each.</p>
+  </div>
+  <label class="yr">Year <select id="year"></select></label>
+</div></header>
+
+<section class="band"><div class="in main">
+  <div class="wheel" id="wheel"><svg id="svg" aria-hidden="true"></svg>
+    <div class="hub" id="hub"></div></div>
+  <div class="opts" id="opts" aria-live="polite"></div>
+</div></section>
+
+<section class="band pick"><div class="in cols">
+  <div>
+    <h2>Holidays you celebrate</h2>
+    <div class="bar">
+      <button type="button" data-q="all">Select all</button>
+      <button type="button" data-q="fed">Federal only</button>
+      <button type="button" data-q="none">Clear</button>
+    </div>
+    <div id="list"></div>
+  </div>
+  <div>
+    <h2>Your own dates</h2>
+    <p class="span">Birthdays, anniversaries, family traditions — anything that repeats every year.</p>
+    <form class="add" id="add">
+      <input id="cn" placeholder="Name, e.g. Grandma's birthday" aria-label="Holiday name" required>
+      <select id="cm" aria-label="Month"></select>
+      <input id="cd" type="number" min="1" max="31" value="1" aria-label="Day" inputmode="numeric">
+      <button class="solid" type="submit">Add date</button>
+    </form>
+    <ul class="cust" id="cust"></ul>
+    <p class="fine">Holidays on lunar or religious calendars (Lunar New Year, Passover, Hanukkah, Ramadan and Eid, Diwali and others) move every year, so add those here for the year you're planning. Dates shown are the actual days, not the weekday a workplace may observe. Your choices are kept in this browser only.</p>
+  </div>
+</div></section>
+<footer>Built by <a href="/">Jason A. Russell</a></footer>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const MO=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const leap=y=>(y%4===0&&y%100!==0)||y%400===0;
+const nth=(y,m,wd,n)=>{const off=(wd-new Date(y,m,1).getDay()+7)%7;return new Date(y,m,1+off+7*(n-1))};
+const last=(y,m,wd)=>{const d=new Date(y,m+1,0);return new Date(y,m,d.getDate()-((d.getDay()-wd+7)%7))};
+const fix=(m,d)=>y=>new Date(y,m,d);
+const easter=y=>{const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),t=h+l-7*m+114;return new Date(y,Math.floor(t/31)-1,t%31+1)};
+const plus=(f,n)=>y=>{const d=f(y);return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n)};
+const thanks=y=>nth(y,10,4,4);
+const F='Federal holidays',O='Popular observances';
+const H=[
+ [F,'ny',"New Year's Day",fix(0,1),1],[F,'mlk','Martin Luther King Jr. Day',y=>nth(y,0,1,3),1],
+ [F,'pres',"Presidents' Day",y=>nth(y,1,1,3),1],[F,'mem','Memorial Day',y=>last(y,4,1),1],
+ [F,'jun','Juneteenth',fix(5,19),1],[F,'jul4','Independence Day',fix(6,4),1],
+ [F,'lab','Labor Day',y=>nth(y,8,1,1),1],[F,'col',"Columbus / Indigenous Peoples' Day",y=>nth(y,9,1,2),1],
+ [F,'vet','Veterans Day',fix(10,11),1],[F,'tg','Thanksgiving',thanks,1],[F,'xm','Christmas Day',fix(11,25),1],
+ [O,'val',"Valentine's Day",fix(1,14),0],[O,'mg','Mardi Gras',plus(easter,-47),0],
+ [O,'stp',"St. Patrick's Day",fix(2,17),0],[O,'gf','Good Friday',plus(easter,-2),0],
+ [O,'eas','Easter Sunday',easter,1],[O,'earth','Earth Day',fix(3,22),0],[O,'cinco','Cinco de Mayo',fix(4,5),0],
+ [O,'mom',"Mother's Day",y=>nth(y,4,0,2),0],[O,'dad',"Father's Day",y=>nth(y,5,0,3),0],
+ [O,'hal','Halloween',fix(9,31),1],[O,'bf','Day after Thanksgiving',plus(thanks,1),0],
+ [O,'xe','Christmas Eve',fix(11,24),1],[O,'nye',"New Year's Eve",fix(11,31),0]
+].map(([g,id,n,f,on])=>({g,id,n,f,on}));
+
+const now=new Date(),cy=now.getFullYear();
+let S={year:now.getMonth()>=9?cy+1:cy,on:H.filter(h=>h.on).map(h=>h.id),custom:[]};
+try{const s=JSON.parse(localStorage.getItem('gapfinder.v1'));if(s&&Array.isArray(s.on))S={...S,...s}}catch(e){}
+const save=()=>{try{localStorage.setItem('gapfinder.v1',JSON.stringify(S))}catch(e){}};
+
+const cdate=(c,y)=>new Date(y,c.m,c.m===1&&c.d===29&&!leap(y)?28:c.d);
+const entries=y=>[...H.filter(h=>S.on.includes(h.id)).map(h=>({n:h.n,d:h.f(y)})),...S.custom.map(c=>({n:c.n||'Untitled',d:cdate(c,y)}))];
+const idx=(d,y)=>Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(y,0,1))/864e5);
+const dOf=(i,y)=>new Date(y,0,1+i);
+const fmt=(d,y,o={})=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',...(d.getFullYear()!==y?{year:'numeric'}:{}),...o});
+const short=(d,y)=>fmt(d,y,{weekday:undefined});
+
+function points(y,base){const m=new Map();entries(y).forEach(e=>{const i=idx(e.d,base);m.has(i)?m.get(i).push(e.n):m.set(i,[e.n])});return[...m].map(([i,ns])=>({i,ns})).sort((a,b)=>a.i-b.i)}
+function gaps(){
+  const Y=S.year,p=points(Y,Y);if(!p.length)return{p,g:[]};
+  const g=[];for(let k=0;k<p.length-1;k++)g.push({a:p[k],b:p[k+1]});
+  const L=leap(Y)?366:365,mk=(a,b)=>({a,b,len:b.i-a.i,mid:a.i+Math.floor((b.i-a.i)/2)});
+  g.forEach(x=>Object.assign(x,mk(x.a,x.b)));
+  /* the year-end gap: use whichever version (last year's into this year, or this year's into next) has its middle inside the chosen year */
+  const B=mk(p[p.length-1],points(Y+1,Y)[0]);g.push(B.mid<L?B:mk(points(Y-1,Y).slice(-1)[0],p[0]));
+  return{p,g:g.filter(x=>x.len>1).sort((a,b)=>b.len-a.len||a.a.i-b.a.i).slice(0,3)};
+}
+function longWeekend(x,Y){
+  for(const k of[0,1,-1,2,-2,3,-3]){const i=x.mid+k;if(i<=x.a.i||i>=x.b.i)continue;const w=dOf(i,Y).getDay();if(w===1||w===5)return k===0?null:dOf(i,Y)}
+  return null;
+}
+
+const svg=$('#svg'),wheel=$('#wheel');
+let G={p:[],g:[]},sel=0;
+function draw(){
+  const Y=S.year,{p,g}=G,W=wheel.clientWidth;if(!W)return;
+  const L=leap(Y)?366:365,c=W/2,tw=Math.max(18,W*.075),R=c-4,Ri=R-tw,rm=(R+Ri)/2;
+  const ang=i=>i/L*2*Math.PI-Math.PI/2,xy=(r,i)=>[c+r*Math.cos(ang(i)),c+r*Math.sin(ang(i))].map(v=>+v.toFixed(1)),pt=(r,i)=>xy(r,i).join(' ');
+  const sector=(i0,i1,r0,r1)=>{if(i1-i0>L*.98){const m=(i0+i1)/2;return sector(i0,m,r0,r1)+sector(m,Math.min(i1,i0+L-.01),r0,r1)}const lg=(i1-i0)/L>.5?1:0;
+    return`M${pt(r1,i0)} A${r1} ${r1} 0 ${lg} 1 ${pt(r1,i1)} L${pt(r0,i1)} A${r0} ${r0} 0 ${lg} 0 ${pt(r0,i0)}Z`};
+  let h=`<circle class="track" cx="${c}" cy="${c}" r="${rm}" stroke-width="${tw}"/>`;
+  h+=g.map((x,r)=>`<path class="gap r${r}${r===sel?' sel':''}" data-r="${r}" d="${sector(x.a.i,x.b.i,Ri,R)}"/>`).join('');
+  const lr=Ri-15,tiny=W<340;
+  for(let m=0;m<12;m++){const s=idx(new Date(Y,m,1),Y),e=idx(new Date(Y,m+1,1),Y),[x1,y1]=xy(Ri,s),[x2,y2]=xy(R,s),[lx,ly]=xy(lr,(s+e)/2);
+    h+=`<line class="div" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/><text class="mlab" x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle">${tiny?MO[m][0]:MO[m].slice(0,3)}</text>`}
+  h+=p.map(q=>{const[a,b]=xy(Ri-2,q.i+.5),[x2,y2]=xy(R+2,q.i+.5);return`<line class="tick" x1="${a}" y1="${b}" x2="${x2}" y2="${y2}"><title>${esc(q.ns.join(', '))}</title></line>`}).join('');
+  const pr=Math.max(11,tw*.42);
+  h+=g.map((x,r)=>{const[a,b]=xy(rm,x.mid+.5);return`<g class="pg" data-r="${r}"><circle class="pin${r===sel?' sel':''}" cx="${a}" cy="${b}" r="${pr}"/><text class="pintx" x="${a}" y="${b}" text-anchor="middle" dominant-baseline="central">${r+1}</text></g>`}).join('');
+  svg.innerHTML=h;
+}
+function hub(){
+  const x=G.g[sel];
+  $('#hub').innerHTML=x?`<div class="big">${x.len}</div><small>${sel===0?`days in your longest stretch without a holiday in ${S.year}`:`days in option ${sel+1}`}</small>`:`<small>Pick at least one holiday to see the gaps</small>`;
+}
+function opts(){
+  const Y=S.year;
+  $('#opts').innerHTML=`<h2>Best places for a new holiday</h2>`+[0,1,2].map(r=>{const x=G.g[r];
+    if(!x)return`<div class="opt ghost"><div class="num">${r+1}</div><p>${r===0?'Tick a holiday below or add one of your own.':'Add another holiday to find this gap.'}</p></div>`;
+    const a=dOf(x.a.i,Y),b=dOf(x.b.i,Y),m=dOf(x.mid,Y),lw=longWeekend(x,Y),odd=x.len%2===1;
+    return`<article class="opt${r===sel?' sel':''}" data-r="${r}" tabindex="0" aria-label="Option ${r+1}"><div class="num">${r+1}</div><div>
+      <p class="span"><b>${x.len} days</b> from ${esc(x.a.ns.join(' & '))} <span class="nw">(${short(a,Y)})</span> to ${esc(x.b.ns.join(' & '))} <span class="nw">(${short(b,Y)})</span></p>
+      <p class="mlbl">Middle date</p><p class="mid">${fmt(m,Y,{weekday:'long'})}</p>
+      <p class="note">${odd?`The exact center falls between ${short(m,Y)} and ${short(dOf(x.mid+1,Y),Y)}. `:''}${lw?`Nearest Friday or Monday for a long weekend: ${fmt(lw,Y)}.`:''}</p>
+      <button type="button" data-add="${x.mid}">Add this date to my list</button></div></article>`}).join('');
+}
+function update(){G=gaps();sel=0;hub();opts();draw();save()}
+function select(r){if(!G.g[r]||r===sel)return;sel=r;hub();draw();document.querySelectorAll('.opt[data-r]').forEach(o=>o.classList.toggle('sel',+o.dataset.r===sel))}
+function renderList(){const Y=S.year;
+  $('#list').innerHTML=[F,O].map(gr=>`<fieldset><legend>${gr}</legend><div class="hl">${H.filter(h=>h.g===gr).map(h=>
+    `<label class="row"><input type="checkbox" data-id="${h.id}" ${S.on.includes(h.id)?'checked':''}><span>${h.n}</span><time>${short(h.f(Y),Y)}</time></label>`).join('')}</div></fieldset>`).join('')}
+function renderCust(){const Y=S.year;
+  $('#cust').innerHTML=S.custom.length?S.custom.map(c=>`<li><input value="${esc(c.n)}" data-cid="${c.id}" aria-label="Name"><time>${short(cdate(c,Y),Y)}</time><button type="button" data-del="${c.id}" aria-label="Remove ${esc(c.n)}">Remove</button></li>`).join(''):`<li class="span">No custom dates yet.</li>`}
+/* keep the element being used fixed on screen while content above it changes height */
+const keep=(el,fn)=>{const t=el.getBoundingClientRect().top;fn();const d=el.getBoundingClientRect().top-t;if(Math.abs(d)>1)window.scrollBy(0,d)};
+
+$('#year').innerHTML=Array.from({length:7},(_,k)=>cy-1+k).map(y=>`<option${y===S.year?' selected':''}>${y}</option>`).join('');
+$('#cm').innerHTML=MO.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+$('#year').addEventListener('change',e=>{S.year=+e.target.value;renderList();renderCust();update()});
+$('#list').addEventListener('change',e=>{const el=e.target,id=el.dataset.id;if(!id)return;
+  keep(el,()=>{S.on=el.checked?[...S.on,id]:S.on.filter(x=>x!==id);update()})});
+document.querySelector('.bar').addEventListener('click',e=>{const q=e.target.dataset.q;if(!q)return;
+  keep(e.target,()=>{S.on=q==='all'?H.map(h=>h.id):q==='fed'?H.filter(h=>h.g===F).map(h=>h.id):[];
+    document.querySelectorAll('#list input').forEach(c=>c.checked=S.on.includes(c.dataset.id));update()})});
+$('#add').addEventListener('submit',e=>{e.preventDefault();const m=+$('#cm').value,max=new Date(2024,m+1,0).getDate(),d=Math.min(max,Math.max(1,+$('#cd').value||1));
+  keep($('#add'),()=>{S.custom.push({id:Date.now().toString(36),n:$('#cn').value.trim()||'Untitled',m,d});$('#cn').value='';renderCust();update()})});
+$('#cust').addEventListener('click',e=>{const id=e.target.dataset.del;if(id)keep($('#add'),()=>{S.custom=S.custom.filter(c=>c.id!==id);renderCust();update()})});
+$('#cust').addEventListener('change',e=>{const c=S.custom.find(c=>c.id===e.target.dataset.cid);if(c){c.n=e.target.value.trim()||'Untitled';update()}});
+$('#opts').addEventListener('click',e=>{const i=e.target.dataset.add;
+  if(i!==undefined){const d=dOf(+i,S.year),id=Date.now().toString(36);S.custom.push({id,n:'New holiday',m:d.getMonth(),d:d.getDate()});renderCust();update();
+    const el=document.querySelector(`[data-cid="${id}"]`);if(el){el.scrollIntoView({block:'center'});el.select()}return}
+  const o=e.target.closest('.opt[data-r]');if(o)select(+o.dataset.r)});
+$('#opts').addEventListener('keydown',e=>{const o=e.target.closest('.opt[data-r]');if(o&&e.target===o&&(e.key==='Enter'||e.key===' ')){e.preventDefault();select(+o.dataset.r)}});
+svg.addEventListener('click',e=>{const g=e.target.closest('.pg');if(g)select(+g.dataset.r)});
+new ResizeObserver(draw).observe(wheel);
+renderList();renderCust();update();
+}
+</script>
+</body>
+</html>
